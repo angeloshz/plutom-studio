@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PLUTOM STUDIO — Servicios</title>
+<link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Manrope:wght@300;400;500;600;700&display=swap">
+<style>
+  .servicio-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 18px; display: flex; flex-direction: column; gap: 12px; animation: fadeUp 0.4s ease both;
+  }
+  .servicio-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--navy-light), transparent); }
+  .servicio-card:hover { border-color: var(--border-hover); transform: translateY(-2px); }
+  .servicio-titulo { font-family:'Outfit',sans-serif; font-size: 14px; font-weight: 700; }
+  .servicio-precio { font-family:'Outfit',sans-serif; font-size: 20px; font-weight: 800; color: var(--accent2); }
+  .servicio-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  @media (max-width: 768px) { .servicio-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<aside class="sidebar"></aside>
+
+<main class="main">
+  <div class="topbar">
+    <div class="page-title">⚙️ Servicios</div>
+    <div class="topbar-right" style="display:flex;gap:12px;align-items:center;">
+      <button class="btn btn-primary" onclick="abrirModal()">+ Nuevo Servicio</button>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="kpi-grid">
+      <div class="kpi-card anim-1">
+        <div class="kpi-header"><span class="kpi-label">Total Servicios</span><div class="kpi-icon teal">⚙️</div></div>
+        <div class="kpi-value" id="kpi-total">0</div>
+        <div class="kpi-footer"><span class="kpi-change neu">—</span><span class="kpi-sub">disponibles</span></div>
+      </div>
+      <div class="kpi-card anim-2">
+        <div class="kpi-header"><span class="kpi-label">Precio Promedio</span><div class="kpi-icon blue">💰</div></div>
+        <div class="kpi-value" id="kpi-promedio" style="font-size:18px;">RD$0</div>
+        <div class="kpi-footer"><span class="kpi-change neu">—</span><span class="kpi-sub">de servicios</span></div>
+      </div>
+      <div class="kpi-card anim-3">
+        <div class="kpi-header"><span class="kpi-label">Más Popular</span><div class="kpi-icon gold">⭐</div></div>
+        <div class="kpi-value" id="kpi-popular" style="font-size:14px;">—</div>
+        <div class="kpi-footer"><span class="kpi-change neu">—</span><span class="kpi-sub">servicio</span></div>
+      </div>
+      <div class="kpi-card anim-4">
+        <div class="kpi-header"><span class="kpi-label">Ingreso Potencial</span><div class="kpi-icon green">📈</div></div>
+        <div class="kpi-value" id="kpi-potencial" style="font-size:18px;">RD$0</div>
+        <div class="kpi-footer"><span class="kpi-change neu">—</span><span class="kpi-sub">si vendes todos</span></div>
+      </div>
+    </div>
+
+    <div class="card" style="padding:20px;animation:fadeUp 0.45s 0.25s ease both;">
+      <div style="margin-bottom:20px;">
+        <div class="card-title">⚙️ Catálogo de Servicios</div>
+      </div>
+      <div class="servicio-grid" id="gridServicios"></div>
+      <div id="emptyServicios" class="empty-state" style="display:none;padding:40px;">
+        <div class="empty-icon">⚙️</div>
+        <div class="empty-title">Sin servicios</div>
+        <div class="empty-sub">Crea tu primer servicio desde aquí</div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">⚙️ Nuevo Servicio</div>
+      <button class="modal-close" onclick="cerrarModal()">✕</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:16px;">
+      <div class="form-group">
+        <label>Nombre *</label>
+        <input type="text" id="nombre" placeholder="Ej. Boda Esencial">
+      </div>
+      <div class="form-group">
+        <label>Descripción</label>
+        <textarea id="desc" placeholder="Breve descripción..." rows="2"></textarea>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Precio (RD$) *</label>
+          <input type="number" id="precio" placeholder="0.00" min="0">
+        </div>
+        <div class="form-group">
+          <label>Duración</label>
+          <input type="text" id="duracion" placeholder="Ej. 8 horas">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Características</label>
+        <textarea id="features" placeholder="Una por línea..." rows="3"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Categoría</label>
+        <select id="categoria">
+          <option>Bodas</option>
+          <option>Quinceañeras</option>
+          <option>Eventos</option>
+          <option>Marketing Digital</option>
+          <option>Otros</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardar()">💾 Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script src="js/shell.js"></script>
+
+<script>
+  let servicios = JSON.parse(localStorage.getItem('ps_servicios') || '[]');
+  let editandoId = null;
+
+  function initServicios() {
+    if (servicios.length === 0) {
+      servicios = [
+        { id: 1, nombre: 'Boda Esencial', categoria: 'Bodas', precio: 12000, duracion: '8 horas', desc: 'Cobertura fotográfica', features: ['Fotografía profesional','Álbum digital','30-40 fotos editadas','1 fotógrafo'] },
+        { id: 2, nombre: 'Boda Premium', categoria: 'Bodas', precio: 25000, duracion: '12 horas', desc: 'Foto + Video 4K', features: ['Fotografía + Video 4K','Álbum de cuero','Drone','2 fotógrafos','Video HD editado'] },
+        { id: 3, nombre: 'Sesión 15 Años', categoria: 'Quinceañeras', precio: 8000, duracion: '4 horas', desc: 'Sesión personalizada', features: ['50-60 fotos','Varios looks','Álbum digital','Retoque profesional'] },
+        { id: 4, nombre: 'Marketing Digital', categoria: 'Marketing Digital', precio: 5000, duracion: 'Mensual', desc: 'Gestión de redes', features: ['Publicaciones 3x semana','Community management','Análisis mensual','Contenido diseñado'] },
+        { id: 5, nombre: 'Evento Corporativo', categoria: 'Eventos', precio: 15000, duracion: '6 horas', desc: 'Cobertura profesional', features: ['Fotografía evento','Video highlights','30-40 fotos','Edición incluida'] },
+        { id: 6, nombre: 'Paquete Video Completo', categoria: 'Eventos', precio: 18000, duracion: '2 semanas', desc: 'Video profesional', features: ['Cobertura 8 horas','Drone (exterior)','Video 4K editado','Música sincronizada'] },
+      ];
+      localStorage.setItem('ps_servicios', JSON.stringify(servicios));
+    }
+  }
+
+  function renderGrid() {
+    const grid = document.getElementById('gridServicios');
+    const empty = document.getElementById('emptyServicios');
+    
+    if (servicios.length === 0) {
+      grid.innerHTML = '';
+      empty.style.display = 'flex';
+    } else {
+      empty.style.display = 'none';
+      grid.innerHTML = servicios.map(s => `
+        <div class="servicio-card" style="position:relative;">
+          <div>
+            <div class="servicio-titulo">${s.nombre}</div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:3px;"><span class="chip chip-muted">${s.categoria}</span></div>
+          </div>
+          <div class="servicio-precio">RD$${Number(s.precio).toLocaleString('es-DO')}</div>
+          <div style="font-size:12px;color:var(--text-muted);">${s.desc}</div>
+          ${(s.features||[]).length > 0 ? `
+            <div style="font-size:11px;color:var(--text-muted);">
+              ${(s.features||[]).slice(0, 2).map(f => `<div>✓ ${f}</div>`).join('')}
+              ${(s.features||[]).length > 2 ? `<div style="color:var(--accent2);">+${(s.features||[]).length - 2} más</div>` : ''}
+            </div>` : ''}
+          <div style="display:flex;gap:6px;">
+            <button class="btn btn-ghost btn-sm" onclick="abrirModal(${s.id})">✏️</button>
+            <button class="btn btn-danger btn-sm" onclick="eliminar(${s.id})">🗑️</button>
+          </div>
+        </div>`).join('');
+    }
+    actualizarKPIs();
+  }
+
+  function actualizarKPIs() {
+    const promedio = servicios.length > 0 ? Math.round(servicios.reduce((s, svc) => s + Number(svc.precio), 0) / servicios.length) : 0;
+    const potencial = servicios.reduce((s, svc) => s + Number(svc.precio), 0);
+    const popular = servicios.length > 0 ? servicios.sort((a, b) => b.precio - a.precio)[0].nombre : '—';
+
+    document.getElementById('kpi-total').textContent = servicios.length;
+    document.getElementById('kpi-promedio').textContent = `RD$${promedio.toLocaleString('es-DO')}`;
+    document.getElementById('kpi-popular').textContent = popular.length > 15 ? popular.substring(0, 12) + '...' : popular;
+    document.getElementById('kpi-potencial').textContent = `RD$${potencial.toLocaleString('es-DO')}`;
+  }
+
+  function abrirModal(id = null) {
+    editandoId = id;
+    if (id) {
+      const s = servicios.find(x => x.id === id);
+      document.getElementById('nombre').value = s.nombre;
+      document.getElementById('desc').value = s.desc;
+      document.getElementById('precio').value = s.precio;
+      document.getElementById('duracion').value = s.duracion;
+      document.getElementById('features').value = (s.features||[]).join('\n');
+      document.getElementById('categoria').value = s.categoria;
+    } else {
+      ['nombre','desc','precio','duracion','features'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('categoria').value = 'Bodas';
+    }
+    document.getElementById('modalOverlay').classList.add('open');
+  }
+
+  function cerrarModal() {
+    document.getElementById('modalOverlay').classList.remove('open');
+  }
+
+  document.getElementById('modalOverlay').addEventListener('click', e => {
+    if (e.target === document.getElementById('modalOverlay')) cerrarModal();
+  });
+
+  function guardar() {
+    const nombre = document.getElementById('nombre').value.trim();
+    const precio = parseFloat(document.getElementById('precio').value);
+
+    if (!nombre || isNaN(precio)) {
+      alert('Completa los campos obligatorios (*)');
+      return;
+    }
+
+    const features = document.getElementById('features').value.trim().split('\n').filter(f => f.trim());
+
+    const datos = {
+      nombre, precio,
+      desc: document.getElementById('desc').value.trim(),
+      duracion: document.getElementById('duracion').value.trim(),
+      features: features,
+      categoria: document.getElementById('categoria').value,
+    };
+
+    if (editandoId) {
+      const idx = servicios.findIndex(x => x.id === editandoId);
+      servicios[idx] = { ...servicios[idx], ...datos };
+    } else {
+      datos.id = Date.now();
+      servicios.push(datos);
+    }
+
+    localStorage.setItem('ps_servicios', JSON.stringify(servicios));
+    cerrarModal();
+    renderGrid();
+  }
+
+  function eliminar(id) {
+    if (!confirm('¿Eliminar?')) return;
+    servicios = servicios.filter(x => x.id !== id);
+    localStorage.setItem('ps_servicios', JSON.stringify(servicios));
+    renderGrid();
+  }
+
+  initServicios();
+  renderGrid();
+</script>
+
+</body>
+</html>

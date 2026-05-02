@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PLUTOM STUDIO — Proyectos</title>
+<link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Manrope:wght@300;400;500;600;700&display=swap">
+<style>
+  .proyecto-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 18px; display: flex; flex-direction: column; gap: 12px;
+    transition: all 0.2s; animation: fadeUp 0.4s var(--ease) both;
+  }
+  .proyecto-card:hover { border-color: var(--border-hover); transform: translateY(-2px); }
+  .proyecto-titulo { font-family:'Outfit',sans-serif; font-size: 14.5px; font-weight: 700; }
+  .proyecto-cliente { font-size: 12px; color: var(--text-muted); }
+  .proyecto-progreso-label { display: flex; justify-content: space-between; font-size: 11.5px; margin-bottom: 5px; }
+  .proyecto-progreso { height: 6px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
+  .proyecto-progreso-bar { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--green), var(--accent)); }
+  .proyecto-footer { display: flex; align-items: center; justify-content: space-between; font-size: 11px; }
+  .proyecto-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  @media (max-width: 1200px) { .proyecto-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 768px) { .proyecto-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<aside class="sidebar"></aside>
+
+<main class="main">
+  <div class="topbar">
+    <div class="page-title">🎬 Proyectos</div>
+    <div class="topbar-right" style="display:flex;gap:12px;align-items:center;">
+      <div class="search-bar">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="Buscar proyecto..." oninput="filtrar()">
+      </div>
+      <button class="btn btn-primary" onclick="abrirModal()">+ Nuevo Proyecto</button>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="kpi-grid">
+      <div class="kpi-card anim-1">
+        <div class="kpi-header"><span class="kpi-label">Total</span><div class="kpi-icon teal">🎬</div></div>
+        <div class="kpi-value" id="kpi-total">0</div>
+        <div class="kpi-footer"><span class="kpi-change neu">—</span><span class="kpi-sub">proyectos</span></div>
+      </div>
+      <div class="kpi-card anim-2">
+        <div class="kpi-header"><span class="kpi-label">En Progreso</span><div class="kpi-icon blue">⏳</div></div>
+        <div class="kpi-value" id="kpi-progreso">0</div>
+        <div class="kpi-footer"><span class="kpi-change neu">—</span><span class="kpi-sub">en curso</span></div>
+      </div>
+      <div class="kpi-card anim-3">
+        <div class="kpi-header"><span class="kpi-label">Completados</span><div class="kpi-icon green">✅</div></div>
+        <div class="kpi-value" id="kpi-completados">0</div>
+        <div class="kpi-footer"><span class="kpi-change pos" id="kpi-tasa">0%</span><span class="kpi-sub">finalizado</span></div>
+      </div>
+      <div class="kpi-card anim-4">
+        <div class="kpi-header"><span class="kpi-label">Valor Total</span><div class="kpi-icon purple">💰</div></div>
+        <div class="kpi-value" id="kpi-valor" style="font-size:20px;">RD$0</div>
+        <div class="kpi-footer"><span class="kpi-change neu">—</span><span class="kpi-sub">proyectos</span></div>
+      </div>
+    </div>
+
+    <div class="card" style="padding:20px;animation:fadeUp 0.45s 0.25s ease both;">
+      <div style="margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;">
+        <div class="card-title">🎬 Mis Proyectos</div>
+        <select id="filtroEstado" onchange="filtrar()" style="width:auto;padding:7px 32px 7px 12px;font-size:12.5px;">
+          <option value="">Todos los estados</option>
+          <option>Pendiente</option>
+          <option>En Progreso</option>
+          <option>En Revisión</option>
+          <option>Completado</option>
+          <option>Pausado</option>
+        </select>
+      </div>
+      <div class="proyecto-grid" id="gridProyectos"></div>
+      <div id="emptyProyectos" class="empty-state" style="display:none;padding:60px 20px;">
+        <div class="empty-icon">🎬</div>
+        <div class="empty-title">Sin proyectos aún</div>
+        <div class="empty-sub">Crea tu primer proyecto desde aquí</div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- MODAL PROYECTO -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitulo">🎬 Nuevo Proyecto</div>
+      <button class="modal-close" onclick="cerrarModal()">✕</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:16px;">
+      <div class="form-group">
+        <label>Nombre del Proyecto *</label>
+        <input type="text" id="nombre" placeholder="Ej. Edición Boda Juan & María">
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Cliente *</label>
+          <select id="cliente">
+            <option value="">Seleccionar cliente...</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Tipo *</label>
+          <select id="tipo">
+            <option>Fotografía</option>
+            <option>Video</option>
+            <option>Edición</option>
+            <option>Diseño</option>
+            <option>Marketing</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Fecha de Inicio *</label>
+          <input type="date" id="inicio">
+        </div>
+        <div class="form-group">
+          <label>Fecha de Entrega</label>
+          <input type="date" id="entrega">
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Progreso (%)</label>
+          <input type="number" id="progreso" min="0" max="100" value="0">
+        </div>
+        <div class="form-group">
+          <label>Valor (RD$)</label>
+          <input type="number" id="valor" placeholder="0.00" min="0">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Estado</label>
+        <select id="estado">
+          <option>Pendiente</option>
+          <option>En Progreso</option>
+          <option>En Revisión</option>
+          <option>Completado</option>
+          <option>Pausado</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Notas</label>
+        <textarea id="notas" placeholder="Detalles del proyecto..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardar()">💾 Guardar Proyecto</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script src="js/shell.js"></script>
+
+<script>
+  let proyectos = JSON.parse(localStorage.getItem('ps_proyectos') || '[]');
+  let editandoId = null;
+
+  function renderGrid() {
+    const grid = document.getElementById('gridProyectos');
+    const empty = document.getElementById('emptyProyectos');
+    
+    if (proyectos.length === 0) {
+      grid.innerHTML = '';
+      empty.style.display = 'flex';
+    } else {
+      empty.style.display = 'none';
+      grid.innerHTML = proyectos.map(p => `
+        <div class="proyecto-card">
+          <div>
+            <div class="proyecto-titulo">${p.nombre}</div>
+            <div class="proyecto-cliente">${p.cliente}</div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:4px;"><span class="chip chip-blue">${p.tipo}</span></div>
+          </div>
+          <div>
+            <div class="proyecto-progreso-label">
+              <span>Progreso</span>
+              <strong>${p.progreso || 0}%</strong>
+            </div>
+            <div class="proyecto-progreso">
+              <div class="proyecto-progreso-bar" style="width:${p.progreso || 0}%"></div>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <span class="chip ${p.estado === 'Completado' ? 'chip-green' : p.estado === 'En Progreso' ? 'chip-blue' : 'chip-amber'}">${p.estado}</span>
+            ${p.valor ? `<span class="chip chip-navy">RD$${Number(p.valor).toLocaleString('es-DO')}</span>` : ''}
+          </div>
+          <div class="proyecto-footer">
+            <span>📅 ${p.entrega || '—'}</span>
+            <div style="display:flex;gap:6px;">
+              <button class="btn btn-ghost btn-sm" onclick="abrirModal(${p.id})">✏️</button>
+              <button class="btn btn-danger btn-sm" onclick="eliminar(${p.id})">🗑️</button>
+            </div>
+          </div>
+        </div>`).join('');
+    }
+    actualizarKPIs();
+  }
+
+  function actualizarKPIs() {
+    const progreso = proyectos.filter(p => p.estado === 'En Progreso').length;
+    const completados = proyectos.filter(p => p.estado === 'Completado').length;
+    const tasa = proyectos.length > 0 ? Math.round((completados / proyectos.length) * 100) : 0;
+    const valor = proyectos.reduce((s, p) => s + Number(p.valor || 0), 0);
+
+    document.getElementById('kpi-total').textContent = proyectos.length;
+    document.getElementById('kpi-progreso').textContent = progreso;
+    document.getElementById('kpi-completados').textContent = completados;
+    document.getElementById('kpi-tasa').textContent = `${tasa}%`;
+    document.getElementById('kpi-valor').textContent = `RD$${valor.toLocaleString('es-DO')}`;
+  }
+
+  function cargarClientes() {
+    const clientes = JSON.parse(localStorage.getItem('ps_clientes') || '[]');
+    const select = document.getElementById('cliente');
+    const opts = ['<option value="">Seleccionar cliente...</option>'];
+    clientes.forEach(c => opts.push(`<option value="${c.nombre}">${c.nombre}</option>`));
+    select.innerHTML = opts.join('');
+  }
+
+  function filtrar() {
+    const search = document.getElementById('searchInput').value.toLowerCase();
+    const estado = document.getElementById('filtroEstado').value;
+    const grid = document.getElementById('gridProyectos');
+
+    let filtrados = proyectos.filter(p =>
+      (p.nombre.toLowerCase().includes(search) ||
+       p.cliente.toLowerCase().includes(search)) &&
+      (!estado || p.estado === estado)
+    );
+
+    if (filtrados.length === 0) {
+      grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-muted);">No hay resultados</div>';
+    } else {
+      grid.innerHTML = filtrados.map(p => `
+        <div class="proyecto-card">
+          <div>
+            <div class="proyecto-titulo">${p.nombre}</div>
+            <div class="proyecto-cliente">${p.cliente}</div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:4px;"><span class="chip chip-blue">${p.tipo}</span></div>
+          </div>
+          <div>
+            <div class="proyecto-progreso-label">
+              <span>Progreso</span>
+              <strong>${p.progreso || 0}%</strong>
+            </div>
+            <div class="proyecto-progreso">
+              <div class="proyecto-progreso-bar" style="width:${p.progreso || 0}%"></div>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <span class="chip ${p.estado === 'Completado' ? 'chip-green' : p.estado === 'En Progreso' ? 'chip-blue' : 'chip-amber'}">${p.estado}</span>
+            ${p.valor ? `<span class="chip chip-navy">RD$${Number(p.valor).toLocaleString('es-DO')}</span>` : ''}
+          </div>
+          <div class="proyecto-footer">
+            <span>📅 ${p.entrega || '—'}</span>
+            <div style="display:flex;gap:6px;">
+              <button class="btn btn-ghost btn-sm" onclick="abrirModal(${p.id})">✏️</button>
+              <button class="btn btn-danger btn-sm" onclick="eliminar(${p.id})">🗑️</button>
+            </div>
+          </div>
+        </div>`).join('');
+    }
+  }
+
+  function abrirModal(id = null) {
+    editandoId = id;
+    if (id) {
+      const p = proyectos.find(x => x.id === id);
+      document.getElementById('modalTitulo').textContent = '✏️ Editar Proyecto';
+      document.getElementById('nombre').value = p.nombre;
+      document.getElementById('cliente').value = p.cliente;
+      document.getElementById('tipo').value = p.tipo;
+      document.getElementById('inicio').value = p.inicio;
+      document.getElementById('entrega').value = p.entrega;
+      document.getElementById('progreso').value = p.progreso || 0;
+      document.getElementById('valor').value = p.valor || 0;
+      document.getElementById('estado').value = p.estado;
+      document.getElementById('notas').value = p.notas;
+    } else {
+      document.getElementById('modalTitulo').textContent = '🎬 Nuevo Proyecto';
+      ['nombre','cliente','tipo','inicio','entrega','progreso','valor','notas'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('inicio').value = new Date().toISOString().slice(0, 10);
+      document.getElementById('estado').value = 'Pendiente';
+    }
+    document.getElementById('modalOverlay').classList.add('open');
+  }
+
+  function cerrarModal() {
+    document.getElementById('modalOverlay').classList.remove('open');
+  }
+
+  document.getElementById('modalOverlay').addEventListener('click', e => {
+    if (e.target === document.getElementById('modalOverlay')) cerrarModal();
+  });
+
+  function guardar() {
+    const nombre = document.getElementById('nombre').value.trim();
+    const cliente = document.getElementById('cliente').value.trim();
+    const tipo = document.getElementById('tipo').value;
+    const inicio = document.getElementById('inicio').value;
+
+    if (!nombre || !cliente || !tipo || !inicio) {
+      alert('Completa los campos obligatorios (*)');
+      return;
+    }
+
+    const datos = {
+      nombre, cliente, tipo, inicio,
+      entrega: document.getElementById('entrega').value,
+      progreso: parseInt(document.getElementById('progreso').value) || 0,
+      valor: parseFloat(document.getElementById('valor').value) || 0,
+      estado: document.getElementById('estado').value,
+      notas: document.getElementById('notas').value,
+    };
+
+    if (editandoId) {
+      const idx = proyectos.findIndex(x => x.id === editandoId);
+      proyectos[idx] = { ...proyectos[idx], ...datos };
+    } else {
+      datos.id = Date.now();
+      proyectos.push(datos);
+    }
+
+    localStorage.setItem('ps_proyectos', JSON.stringify(proyectos));
+    cerrarModal();
+    renderGrid();
+  }
+
+  function eliminar(id) {
+    if (!confirm('¿Eliminar este proyecto?')) return;
+    proyectos = proyectos.filter(x => x.id !== id);
+    localStorage.setItem('ps_proyectos', JSON.stringify(proyectos));
+    renderGrid();
+  }
+
+  cargarClientes();
+  renderGrid();
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const btn = document.querySelector('.topbar-right .btn-primary');
+    if (btn) btn.addEventListener('click', () => abrirModal());
+  });
+</script>
+
+</body>
+</html>

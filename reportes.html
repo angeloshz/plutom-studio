@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PLUTOM STUDIO — Reportes</title>
+<link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Manrope:wght@300;400;500;600;700&display=swap">
+</head>
+<body>
+
+<aside class="sidebar"></aside>
+
+<main class="main">
+  <div class="topbar">
+    <div class="page-title">📊 Reportes</div>
+    <div class="topbar-right" style="display:flex;gap:12px;align-items:center;">
+      <select id="filtroMes" onchange="generarReportes()" style="width:auto;padding:7px 32px 7px 12px;font-size:12.5px;">
+        <option value="">Todos los meses</option>
+        <option value="0">Enero</option>
+        <option value="1">Febrero</option>
+        <option value="2">Marzo</option>
+        <option value="3">Abril</option>
+        <option value="4">Mayo</option>
+        <option value="5">Junio</option>
+      </select>
+      <button class="btn btn-primary" onclick="exportarExcel()">📊 Exportar</button>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="kpi-grid">
+      <div class="kpi-card anim-1">
+        <div class="kpi-header"><span class="kpi-label">Ingresos Totales</span><div class="kpi-icon green">📈</div></div>
+        <div class="kpi-value" id="kpi-ingresos" style="font-size:20px;">RD$0</div>
+        <div class="kpi-footer"><span class="kpi-change neu">—</span><span class="kpi-sub">periodo</span></div>
+      </div>
+      <div class="kpi-card anim-2">
+        <div class="kpi-header"><span class="kpi-label">Gastos Totales</span><div class="kpi-icon red">📉</div></div>
+        <div class="kpi-value" id="kpi-gastos" style="font-size:20px;">RD$0</div>
+        <div class="kpi-footer"><span class="kpi-change neu">—</span><span class="kpi-sub">periodo</span></div>
+      </div>
+      <div class="kpi-card anim-3">
+        <div class="kpi-header"><span class="kpi-label">Utilidad Neta</span><div class="kpi-icon blue">⚖️</div></div>
+        <div class="kpi-value" id="kpi-utilidad" style="font-size:20px;">RD$0</div>
+        <div class="kpi-footer"><span class="kpi-change pos" id="kpi-margen">0%</span><span class="kpi-sub">margen</span></div>
+      </div>
+      <div class="kpi-card anim-4">
+        <div class="kpi-header"><span class="kpi-label">Clientes Activos</span><div class="kpi-icon navy">👥</div></div>
+        <div class="kpi-value" id="kpi-clientes">0</div>
+        <div class="kpi-footer"><span class="kpi-change neu">—</span><span class="kpi-sub">registrados</span></div>
+      </div>
+    </div>
+
+    <div class="card" style="animation:fadeUp 0.45s 0.25s ease both;">
+      <div class="card-header">
+        <div class="card-title">📊 Resumen Financiero</div>
+      </div>
+      <div style="padding:20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;grid-auto-flow:dense;">
+        <div style="background:var(--surface2);padding:14px;border-radius:var(--radius);">
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">Tasa de Aprobación</div>
+          <div style="font-family:'Outfit',sans-serif;font-size:20px;font-weight:800;" id="tasa-aprob">0%</div>
+          <div style="font-size:11px;color:var(--text-muted);">cotizaciones aprobadas</div>
+        </div>
+        <div style="background:var(--surface2);padding:14px;border-radius:var(--radius);">
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">Tasa de Pago</div>
+          <div style="font-family:'Outfit',sans-serif;font-size:20px;font-weight:800;" id="tasa-pago">0%</div>
+          <div style="font-size:11px;color:var(--text-muted);">facturas pagadas</div>
+        </div>
+        <div style="background:var(--surface2);padding:14px;border-radius:var(--radius);">
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">Promedio Proyecto</div>
+          <div style="font-family:'Outfit',sans-serif;font-size:20px;font-weight:800;" id="prom-proyecto">RD$0</div>
+          <div style="font-size:11px;color:var(--text-muted);">valor promedio</div>
+        </div>
+        <div style="background:var(--surface2);padding:14px;border-radius:var(--radius);">
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">Servicio Top</div>
+          <div style="font-family:'Outfit',sans-serif;font-size:16px;font-weight:800;" id="servicio-top">—</div>
+          <div style="font-size:11px;color:var(--text-muted);">más solicitado</div>
+        </div>
+        <div style="background:var(--surface2);padding:14px;border-radius:var(--radius);">
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">Tipo Evento Top</div>
+          <div style="font-family:'Outfit',sans-serif;font-size:16px;font-weight:800;" id="evento-top">—</div>
+          <div style="font-size:11px;color:var(--text-muted);">más popular</div>
+        </div>
+        <div style="background:var(--surface2);padding:14px;border-radius:var(--radius);">
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">Proyectos Completados</div>
+          <div style="font-family:'Outfit',sans-serif;font-size:20px;font-weight:800;" id="proy-completados">0</div>
+          <div style="font-size:11px;color:var(--text-muted);">entregados</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="animation:fadeUp 0.45s 0.35s ease both;">
+      <div class="card-header">
+        <div class="card-title">📋 Ingresos por Categoría</div>
+      </div>
+      <div style="padding:20px;" id="categoriasIngresos"></div>
+    </div>
+  </div>
+</main>
+
+<script src="js/app.js"></script>
+<script src="js/shell.js"></script>
+
+<script>
+  function generarReportes() {
+    const mes = document.getElementById('filtroMes').value;
+    const clientes = JSON.parse(localStorage.getItem('ps_clientes') || '[]');
+    const cotizaciones = JSON.parse(localStorage.getItem('ps_cotizaciones') || '[]');
+    const facturas = JSON.parse(localStorage.getItem('ps_facturas') || '[]');
+    const eventos = JSON.parse(localStorage.getItem('ps_eventos') || '[]');
+    const finanzas = JSON.parse(localStorage.getItem('ps_finanzas') || '[]');
+    const proyectos = JSON.parse(localStorage.getItem('ps_proyectos') || '[]');
+    const servicios = JSON.parse(localStorage.getItem('ps_servicios') || '[]');
+
+    // Filtrar por mes si se selecciona
+    let financiasFiltrado = finanzas;
+    if (mes !== '') {
+      const mesNum = parseInt(mes);
+      financiasFiltrado = finanzas.filter(f => new Date(f.fecha + 'T00:00:00').getMonth() === mesNum);
+    }
+
+    // KPIs principales
+    const ingresos = financiasFiltrado.filter(f => f.tipo === 'ingreso').reduce((s, f) => s + Number(f.monto), 0);
+    const gastos = financiasFiltrado.filter(f => f.tipo === 'gasto').reduce((s, f) => s + Number(f.monto), 0);
+    const utilidad = ingresos - gastos;
+    const margen = ingresos > 0 ? Math.round((utilidad / ingresos) * 100) : 0;
+
+    document.getElementById('kpi-ingresos').textContent = `RD$${ingresos.toLocaleString('es-DO')}`;
+    document.getElementById('kpi-gastos').textContent = `RD$${gastos.toLocaleString('es-DO')}`;
+    document.getElementById('kpi-utilidad').textContent = `RD$${utilidad.toLocaleString('es-DO')}`;
+    document.getElementById('kpi-margen').textContent = `${margen}%`;
+    document.getElementById('kpi-margen').className = `kpi-change ${margen >= 20 ? 'pos' : 'neu'}`;
+    document.getElementById('kpi-clientes').textContent = clientes.length;
+
+    // Tasas
+    const cotAprobadas = cotizaciones.filter(c => c.estado === 'Aprobada').length;
+    const tasaAprob = cotizaciones.length > 0 ? Math.round((cotAprobadas / cotizaciones.length) * 100) : 0;
+    document.getElementById('tasa-aprob').textContent = `${tasaAprob}%`;
+
+    const factPagadas = facturas.filter(f => f.estado === 'Pagada').length;
+    const tasaPago = facturas.length > 0 ? Math.round((factPagadas / facturas.length) * 100) : 0;
+    document.getElementById('tasa-pago').textContent = `${tasaPago}%`;
+
+    const promProy = proyectos.length > 0 ? Math.round(proyectos.reduce((s, p) => s + Number(p.valor || 0), 0) / proyectos.length) : 0;
+    document.getElementById('prom-proyecto').textContent = `RD$${promProy.toLocaleString('es-DO')}`;
+
+    const servicioTop = servicios.length > 0 ? servicios.sort((a, b) => b.precio - a.precio)[0].nombre : '—';
+    document.getElementById('servicio-top').textContent = servicioTop.length > 15 ? servicioTop.substring(0, 12) + '...' : servicioTop;
+
+    const eventoTop = eventos.length > 0 ? Object.entries(eventos.reduce((acc, e) => { acc[e.tipo] = (acc[e.tipo] || 0) + 1; return acc; }, {})).sort((a, b) => b[1] - a[1])[0][0] : '—';
+    document.getElementById('evento-top').textContent = eventoTop;
+
+    const proyCompletos = proyectos.filter(p => p.estado === 'Completado').length;
+    document.getElementById('proy-completados').textContent = proyCompletos;
+
+    // Ingresos por categoría
+    const categIngresos = {};
+    financiasFiltrado.filter(f => f.tipo === 'ingreso').forEach(f => {
+      categIngresos[f.cat] = (categIngresos[f.cat] || 0) + Number(f.monto);
+    });
+
+    const html = Object.entries(categIngresos).sort((a, b) => b[1] - a[1]).map(([cat, monto]) => {
+      const pct = ingresos > 0 ? Math.round((monto / ingresos) * 100) : 0;
+      return `
+        <div style="margin-bottom:16px;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:12.5px;font-weight:600;">
+            <span>${cat}</span>
+            <span>RD$${monto.toLocaleString('es-DO')} (${pct}%)</span>
+          </div>
+          <div style="height:6px;background:var(--surface2);border-radius:3px;overflow:hidden;">
+            <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,var(--green),var(--accent));border-radius:3px;"></div>
+          </div>
+        </div>`;
+    }).join('');
+
+    document.getElementById('categoriasIngresos').innerHTML = html || '<div style="color:var(--text-muted);text-align:center;padding:20px;">Sin datos en este período</div>';
+  }
+
+  function exportarExcel() {
+    const clientes = JSON.parse(localStorage.getItem('ps_clientes') || '[]');
+    const cotizaciones = JSON.parse(localStorage.getItem('ps_cotizaciones') || '[]');
+    const facturas = JSON.parse(localStorage.getItem('ps_facturas') || '[]');
+    const eventos = JSON.parse(localStorage.getItem('ps_eventos') || '[]');
+    const finanzas = JSON.parse(localStorage.getItem('ps_finanzas') || '[]');
+    const proyectos = JSON.parse(localStorage.getItem('ps_proyectos') || '[]');
+
+    const mes = document.getElementById('filtroMes').value;
+    let financiasFiltrado = finanzas;
+    if (mes !== '') {
+      const mesNum = parseInt(mes);
+      financiasFiltrado = finanzas.filter(f => new Date(f.fecha + 'T00:00:00').getMonth() === mesNum);
+    }
+
+    // Crear CSV
+    let csv = 'PLUTOM STUDIO - REPORTE FINANCIERO\n';
+    csv += `Generado: ${new Date().toLocaleString('es-DO')}\n\n`;
+
+    csv += '=== RESUMEN GENERAL ===\n';
+    const ingresos = financiasFiltrado.filter(f => f.tipo === 'ingreso').reduce((s, f) => s + Number(f.monto), 0);
+    const gastos = financiasFiltrado.filter(f => f.tipo === 'gasto').reduce((s, f) => s + Number(f.monto), 0);
+    csv += `Total Clientes,${clientes.length}\n`;
+    csv += `Total Cotizaciones,${cotizaciones.length}\n`;
+    csv += `Total Facturas,${facturas.length}\n`;
+    csv += `Ingresos,RD$ ${ingresos.toLocaleString('es-DO')}\n`;
+    csv += `Gastos,RD$ ${gastos.toLocaleString('es-DO')}\n`;
+    csv += `Utilidad Neta,RD$ ${(ingresos - gastos).toLocaleString('es-DO')}\n\n`;
+
+    csv += '=== MOVIMIENTOS FINANCIEROS ===\n';
+    csv += 'Tipo,Descripción,Categoría,Monto,Fecha,Método\n';
+    financiasFiltrado.forEach(f => {
+      csv += `${f.tipo},${f.desc},${f.cat},${f.monto},${f.fecha},${f.metodo}\n`;
+    });
+
+    csv += '\n=== FACTURAS PENDIENTES ===\n';
+    csv += 'Número,Cliente,Monto,Emisión,Vencimiento,Estado\n';
+    facturas.filter(f => f.estado !== 'Pagada').forEach(f => {
+      csv += `${f.num},${f.cliente},${f.monto},${f.emision},${f.vencimiento},${f.estado}\n`;
+    });
+
+    // Descargar
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `PLUTOM_Reporte_${new Date().toISOString().slice(0, 10)}.csv`);
+    link.click();
+  }
+
+  generarReportes();
+</script>
+
+</body>
+</html>
