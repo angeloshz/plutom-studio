@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PLUTOM STUDIO — Finanzas</title>
+<link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Manrope:wght@300;400;500;600;700&display=swap">
+</head>
+<body>
+
+<aside class="sidebar"></aside>
+
+<main class="main">
+  <div class="topbar">
+    <div class="page-title">💰 Finanzas</div>
+    <div class="topbar-right" style="display:flex;gap:12px;align-items:center;">
+      <div class="search-bar">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="Buscar movimiento..." oninput="filtrar()">
+      </div>
+      <button class="btn btn-primary" onclick="abrirModal()">+ Movimiento</button>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="kpi-grid">
+      <div class="kpi-card anim-1">
+        <div class="kpi-header"><span class="kpi-label">Ingresos</span><div class="kpi-icon green">📈</div></div>
+        <div class="kpi-value" id="kpi-ingresos" style="font-size:20px;">RD$0</div>
+        <div class="kpi-footer"><span class="kpi-change neu">—</span><span class="kpi-sub">este mes</span></div>
+      </div>
+      <div class="kpi-card anim-2">
+        <div class="kpi-header"><span class="kpi-label">Gastos</span><div class="kpi-icon red">📉</div></div>
+        <div class="kpi-value" id="kpi-gastos" style="font-size:20px;">RD$0</div>
+        <div class="kpi-footer"><span class="kpi-change neu">—</span><span class="kpi-sub">este mes</span></div>
+      </div>
+      <div class="kpi-card anim-3">
+        <div class="kpi-header"><span class="kpi-label">Balance Neto</span><div class="kpi-icon blue">⚖️</div></div>
+        <div class="kpi-value" id="kpi-balance" style="font-size:20px;">RD$0</div>
+        <div class="kpi-footer"><span class="kpi-change pos" id="kpi-balance-pct">0%</span><span class="kpi-sub">margen</span></div>
+      </div>
+      <div class="kpi-card anim-4">
+        <div class="kpi-header"><span class="kpi-label">Total Movimientos</span><div class="kpi-icon purple">📊</div></div>
+        <div class="kpi-value" id="kpi-movimientos">0</div>
+        <div class="kpi-footer"><span class="kpi-change neu">—</span><span class="kpi-sub">registrados</span></div>
+      </div>
+    </div>
+
+    <div class="card" style="padding:0;animation:fadeUp 0.45s 0.25s ease both;">
+      <div style="padding:20px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+        <div class="card-title">📋 Movimientos Financieros</div>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <select id="filtroMes" onchange="filtrar()" style="width:auto;padding:7px 32px 7px 12px;font-size:12.5px;">
+            <option value="">Todos los meses</option>
+            <option value="0">Enero</option>
+            <option value="1">Febrero</option>
+            <option value="2">Marzo</option>
+            <option value="3">Abril</option>
+            <option value="4">Mayo</option>
+            <option value="5">Junio</option>
+            <option value="6">Julio</option>
+            <option value="7">Agosto</option>
+            <option value="8">Septiembre</option>
+            <option value="9">Octubre</option>
+            <option value="10">Noviembre</option>
+            <option value="11">Diciembre</option>
+          </select>
+          <select id="filtroTipo" onchange="filtrar()" style="width:auto;padding:7px 32px 7px 12px;font-size:12.5px;">
+            <option value="">Todos los tipos</option>
+            <option>ingreso</option>
+            <option>gasto</option>
+          </select>
+        </div>
+      </div>
+      <div class="table-wrap" style="border:none;border-radius:0;">
+        <table>
+          <thead>
+            <tr>
+              <th>Tipo</th>
+              <th>Descripción</th>
+              <th>Categoría</th>
+              <th>Monto</th>
+              <th>Fecha</th>
+              <th>Método</th>
+              <th style="text-align:center">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tablaFinanzas"></tbody>
+        </table>
+        <div id="emptyFinanzas" class="empty-state" style="display:none;">
+          <div class="empty-icon">💰</div>
+          <div class="empty-title">Sin movimientos aún</div>
+          <div class="empty-sub">Registra ingresos y gastos desde aquí</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- MODAL MOVIMIENTO -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitulo">💰 Nuevo Movimiento</div>
+      <button class="modal-close" onclick="cerrarModal()">✕</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:16px;">
+      <div class="form-group">
+        <label>Tipo *</label>
+        <select id="tipo" onchange="cambiarTipo()">
+          <option value="ingreso">💚 Ingreso</option>
+          <option value="gasto">💔 Gasto</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Descripción *</label>
+        <input type="text" id="desc" placeholder="Ej. Cobro Boda Juan & María">
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Categoría *</label>
+          <select id="categoria">
+            <option value="">Seleccionar...</option>
+            <option>Bodas</option>
+            <option>Eventos</option>
+            <option>Marketing Digital</option>
+            <option>Fotografía</option>
+            <option>Video</option>
+            <option>Diseño</option>
+            <option>Servicios Recurrentes</option>
+            <option>Equipos</option>
+            <option>Salarios</option>
+            <option>Servicios</option>
+            <option>Otros</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Monto (RD$) *</label>
+          <input type="number" id="monto" placeholder="0.00" min="0">
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Fecha *</label>
+          <input type="date" id="fecha">
+        </div>
+        <div class="form-group">
+          <label>Método de Pago</label>
+          <select id="metodo">
+            <option>Transferencia</option>
+            <option>Efectivo</option>
+            <option>Cheque</option>
+            <option>Tarjeta</option>
+            <option>Otro</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Notas</label>
+        <textarea id="notas" placeholder="Detalles adicionales..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardar()">💾 Guardar Movimiento</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/supabase.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/app.js"></script>
+<script src="js/shell.js"></script>
+
+<script>
+  let finanzas = JSON.parse(localStorage.getItem('ps_finanzas') || '[]');
+  let editandoId = null;
+
+  function cambiarTipo() {
+    const tipo = document.getElementById('tipo').value;
+    document.getElementById('modalTitulo').textContent = tipo === 'ingreso' ? '💚 Nuevo Ingreso' : '💔 Nuevo Gasto';
+  }
+
+  function renderTabla() {
+    const tabla = document.getElementById('tablaFinanzas');
+    const empty = document.getElementById('emptyFinanzas');
+    
+    if (finanzas.length === 0) {
+      tabla.innerHTML = '';
+      empty.style.display = 'flex';
+    } else {
+      empty.style.display = 'none';
+      tabla.innerHTML = finanzas.map(f => `
+        <tr>
+          <td><span class="chip ${f.tipo === 'ingreso' ? 'chip-green' : 'chip-red'}">${f.tipo === 'ingreso' ? '💚 Ingreso' : '💔 Gasto'}</span></td>
+          <td style="font-weight:600;">${f.desc}</td>
+          <td><span class="chip chip-muted">${f.cat}</span></td>
+          <td style="font-weight:600;color:${f.tipo === 'ingreso' ? 'var(--green)' : 'var(--red)'};">RD$${Number(f.monto).toLocaleString('es-DO')}</td>
+          <td>${f.fecha}</td>
+          <td style="font-size:12px;">${f.metodo}</td>
+          <td style="text-align:center;">
+            <div style="display:flex;gap:6px;justify-content:center;">
+              <button class="btn btn-ghost btn-sm" onclick="abrirModal(${f.id})">✏️</button>
+              <button class="btn btn-danger btn-sm" onclick="eliminar(${f.id})">🗑️</button>
+            </div>
+          </td>
+        </tr>`).join('');
+    }
+    actualizarKPIs();
+  }
+
+  function actualizarKPIs() {
+    const ingre = finanzas.filter(f => f.tipo === 'ingreso').reduce((s, f) => s + Number(f.monto), 0);
+    const gast = finanzas.filter(f => f.tipo === 'gasto').reduce((s, f) => s + Number(f.monto), 0);
+    const bal = ingre - gast;
+    const pct = ingre > 0 ? Math.round((bal / ingre) * 100) : 0;
+
+    document.getElementById('kpi-ingresos').textContent = `RD$${ingre.toLocaleString('es-DO')}`;
+    document.getElementById('kpi-gastos').textContent = `RD$${gast.toLocaleString('es-DO')}`;
+    document.getElementById('kpi-balance').textContent = `RD$${bal.toLocaleString('es-DO')}`;
+    document.getElementById('kpi-balance-pct').textContent = `${pct}%`;
+    document.getElementById('kpi-balance-pct').className = `kpi-change ${pct >= 20 ? 'pos' : 'neu'}`;
+    document.getElementById('kpi-movimientos').textContent = finanzas.length;
+  }
+
+  function filtrar() {
+    const search = document.getElementById('searchInput').value.toLowerCase();
+    const mes = document.getElementById('filtroMes').value;
+    const tipo = document.getElementById('filtroTipo').value;
+    const tabla = document.getElementById('tablaFinanzas');
+
+    let filtrados = finanzas.filter(f =>
+      (f.desc.toLowerCase().includes(search) || f.cat.toLowerCase().includes(search)) &&
+      (!mes || new Date(f.fecha + 'T00:00:00').getMonth().toString() === mes) &&
+      (!tipo || f.tipo === tipo)
+    );
+
+    if (filtrados.length === 0) {
+      tabla.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-muted);">No hay resultados</td></tr>';
+    } else {
+      tabla.innerHTML = filtrados.map(f => `
+        <tr>
+          <td><span class="chip ${f.tipo === 'ingreso' ? 'chip-green' : 'chip-red'}">${f.tipo === 'ingreso' ? '💚 Ingreso' : '💔 Gasto'}</span></td>
+          <td style="font-weight:600;">${f.desc}</td>
+          <td><span class="chip chip-muted">${f.cat}</span></td>
+          <td style="font-weight:600;color:${f.tipo === 'ingreso' ? 'var(--green)' : 'var(--red)'};">RD$${Number(f.monto).toLocaleString('es-DO')}</td>
+          <td>${f.fecha}</td>
+          <td style="font-size:12px;">${f.metodo}</td>
+          <td style="text-align:center;">
+            <div style="display:flex;gap:6px;justify-content:center;">
+              <button class="btn btn-ghost btn-sm" onclick="abrirModal(${f.id})">✏️</button>
+              <button class="btn btn-danger btn-sm" onclick="eliminar(${f.id})">🗑️</button>
+            </div>
+          </td>
+        </tr>`).join('');
+    }
+  }
+
+  function abrirModal(id = null) {
+    editandoId = id;
+    if (id) {
+      const f = finanzas.find(x => x.id === id);
+      document.getElementById('modalTitulo').textContent = '✏️ Editar Movimiento';
+      document.getElementById('tipo').value = f.tipo;
+      document.getElementById('desc').value = f.desc;
+      document.getElementById('categoria').value = f.cat;
+      document.getElementById('monto').value = f.monto;
+      document.getElementById('fecha').value = f.fecha;
+      document.getElementById('metodo').value = f.metodo;
+      document.getElementById('notas').value = f.notas;
+    } else {
+      document.getElementById('modalTitulo').textContent = '💰 Nuevo Movimiento';
+      ['desc','categoria','monto','notas'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('tipo').value = 'ingreso';
+      document.getElementById('fecha').value = new Date().toISOString().slice(0, 10);
+      document.getElementById('metodo').value = 'Transferencia';
+    }
+    document.getElementById('modalOverlay').classList.add('open');
+  }
+
+  function cerrarModal() {
+    document.getElementById('modalOverlay').classList.remove('open');
+  }
+
+  document.getElementById('modalOverlay').addEventListener('click', e => {
+    if (e.target === document.getElementById('modalOverlay')) cerrarModal();
+  });
+
+  function guardar() {
+    const desc = document.getElementById('desc').value.trim();
+    const categoria = document.getElementById('categoria').value;
+    const monto = parseFloat(document.getElementById('monto').value);
+    const fecha = document.getElementById('fecha').value;
+
+    if (!desc || !categoria || isNaN(monto) || !fecha) {
+      alert('Completa los campos obligatorios (*)');
+      return;
+    }
+
+    const datos = {
+      tipo: document.getElementById('tipo').value,
+      desc, categoria, monto, fecha,
+      cat: categoria,
+      metodo: document.getElementById('metodo').value,
+      notas: document.getElementById('notas').value,
+    };
+
+    if (editandoId) {
+      const idx = finanzas.findIndex(x => x.id === editandoId);
+      finanzas[idx] = { ...finanzas[idx], ...datos };
+    } else {
+      datos.id = Date.now();
+      finanzas.push(datos);
+    }
+
+    localStorage.setItem('ps_finanzas', JSON.stringify(finanzas));
+    cerrarModal();
+    renderTabla();
+  }
+
+  function eliminar(id) {
+    if (!confirm('¿Eliminar este movimiento?')) return;
+    finanzas = finanzas.filter(x => x.id !== id);
+    localStorage.setItem('ps_finanzas', JSON.stringify(finanzas));
+    renderTabla();
+  }
+
+  renderTabla();
+
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('fecha').value = new Date().toISOString().slice(0, 10);
+    const btn = document.querySelector('.topbar-right .btn-primary');
+    if (btn) btn.addEventListener('click', () => abrirModal());
+  });
+</script>
+
+</body>
+</html>

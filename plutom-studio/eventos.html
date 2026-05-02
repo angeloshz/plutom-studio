@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PLUTOM STUDIO — Eventos</title>
+<link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Manrope:wght@300;400;500;600;700&display=swap">
+<style>
+  .calendario { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-bottom: 20px; }
+  .dia-semana { text-align: center; font-weight: 700; font-size: 10px; padding: 8px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+  .dia { 
+    aspect-ratio: 1; display: flex; align-items: center; justify-content: center; 
+    border-radius: 7px; cursor: pointer; transition: all 0.2s; 
+    border: 1.5px solid var(--border); background: var(--surface2); font-size: 12px; 
+    position: relative; font-weight: 600;
+  }
+  .dia:hover { background: var(--surface3); border-color: var(--border-hover); }
+  .dia.hoy { background: var(--navy-light); color: var(--silver-pale); border-color: var(--navy-light); }
+  .dia.evento { background: rgba(200,168,75,0.1); border-color: var(--accent2); }
+  .dia.evento::after { 
+    content: ''; position: absolute; bottom: 2px; width: 4px; height: 4px; 
+    border-radius: 50%; background: var(--accent2);
+  }
+  .dia.evento.hoy::after { background: var(--silver-pale); }
+</style>
+</head>
+<body>
+
+<aside class="sidebar"></aside>
+
+<main class="main">
+  <div class="topbar">
+    <div class="page-title">📅 Eventos</div>
+    <div class="topbar-right" style="display:flex;gap:8px;align-items:center;">
+      <button class="btn btn-ghost btn-sm" onclick="mesAnterior()">◀</button>
+      <span id="mesAnio" style="min-width:140px;text-align:center;font-weight:600;font-size:13px;"></span>
+      <button class="btn btn-ghost btn-sm" onclick="mesSiguiente()">▶</button>
+      <button class="btn btn-primary" onclick="abrirModal()">+ Nuevo</button>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="kpi-grid">
+      <div class="kpi-card anim-1">
+        <div class="kpi-header"><span class="kpi-label">Total Eventos</span><div class="kpi-icon blue">📅</div></div>
+        <div class="kpi-value" id="kpi-total">0</div>
+        <div class="kpi-footer"><span class="kpi-change neu">—</span><span class="kpi-sub">registrados</span></div>
+      </div>
+      <div class="kpi-card anim-2">
+        <div class="kpi-header"><span class="kpi-label">Próximos 30 Días</span><div class="kpi-icon purple">🎉</div></div>
+        <div class="kpi-value" id="kpi-proximos">0</div>
+        <div class="kpi-footer"><span class="kpi-change neu">—</span><span class="kpi-sub">agendados</span></div>
+      </div>
+      <div class="kpi-card anim-3">
+        <div class="kpi-header"><span class="kpi-label">Bodas</span><div class="kpi-icon pink">💍</div></div>
+        <div class="kpi-value" id="kpi-bodas">0</div>
+        <div class="kpi-footer"><span class="kpi-change neu">—</span><span class="kpi-sub">programadas</span></div>
+      </div>
+      <div class="kpi-card anim-4">
+        <div class="kpi-header"><span class="kpi-label">Confirmados</span><div class="kpi-icon green">✅</div></div>
+        <div class="kpi-value" id="kpi-confirmados">0</div>
+        <div class="kpi-footer"><span class="kpi-change pos" id="kpi-tasa">0%</span><span class="kpi-sub">confirmados</span></div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div class="card" style="animation:fadeUp 0.45s 0.25s ease both;">
+        <div class="card-header">
+          <div class="card-title">📆 Calendario</div>
+        </div>
+        <div style="padding:16px;">
+          <div class="calendario" id="calendario"></div>
+          <div style="font-size:11px;color:var(--text-muted);text-align:center;">Haz clic en una fecha para agregar evento</div>
+        </div>
+      </div>
+
+      <div class="card" style="animation:fadeUp 0.45s 0.35s ease both;">
+        <div class="card-header">
+          <div class="card-title">📋 Próximos Eventos</div>
+        </div>
+        <div id="listaEventos" style="padding:16px;max-height:400px;overflow-y:auto;"></div>
+        <div id="emptyEventos" class="empty-state" style="display:none;padding:30px;">
+          <div class="empty-icon">📅</div>
+          <div class="empty-title">Sin eventos próximos</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">📅 <span id="modalTitulo">Nuevo Evento</span></div>
+      <button class="modal-close" onclick="cerrarModal()">✕</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:16px;">
+      <div class="form-group">
+        <label>Nombre del Evento *</label>
+        <input type="text" id="nombre" placeholder="Ej. Boda Juan & María">
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Tipo *</label>
+          <select id="tipo">
+            <option>Boda</option>
+            <option>15 Años</option>
+            <option>Corporativo</option>
+            <option>Evento Social</option>
+            <option>Sesión Fotos</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Fecha *</label>
+          <input type="date" id="fecha">
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Hora</label>
+          <input type="time" id="hora">
+        </div>
+        <div class="form-group">
+          <label>Lugar *</label>
+          <input type="text" id="lugar" placeholder="Santo Domingo">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Contacto / Cliente</label>
+        <input type="text" id="contacto" placeholder="809-000-0000">
+      </div>
+      <div class="form-group">
+        <label>Estado</label>
+        <select id="estado">
+          <option>Confirmado</option>
+          <option>Pendiente</option>
+          <option>Cancelado</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Notas</label>
+        <textarea id="notas" placeholder="Detalles especiales..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardar()">💾 Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/supabase.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/app.js"></script>
+<script src="js/shell.js"></script>
+
+<script>
+  let eventos = JSON.parse(localStorage.getItem('ps_eventos') || '[]');
+  let mesActual = new Date().getMonth();
+  let anyoActual = new Date().getFullYear();
+  let editandoId = null;
+  let fechaSeleccionada = null;
+
+  const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+  function renderCalendario() {
+    const cal = document.getElementById('calendario');
+    document.getElementById('mesAnio').textContent = `${MESES[mesActual]} ${anyoActual}`;
+
+    const primerDia = new Date(anyoActual, mesActual, 1);
+    const ultimoDia = new Date(anyoActual, mesActual + 1, 0);
+    const diasMes = ultimoDia.getDate();
+    const diaInicio = primerDia.getDay();
+
+    const DIAS = ['Dom','Lun','Mar','Mié','Jue','Vie','Sab'];
+    let html = DIAS.map(d => `<div class="dia-semana">${d}</div>`).join('');
+
+    for (let i = 0; i < diaInicio; i++) html += '<div></div>';
+
+    const hoy = new Date(); hoy.setHours(0,0,0,0);
+    for (let d = 1; d <= diasMes; d++) {
+      const fecha = new Date(anyoActual, mesActual, d);
+      const fechaStr = `${anyoActual}-${String(mesActual+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const tieneEvento = eventos.some(e => e.fecha === fechaStr);
+      const esHoy = fecha.getTime() === hoy.getTime();
+      const clases = `dia ${tieneEvento ? 'evento' : ''} ${esHoy ? 'hoy' : ''}`;
+      
+      html += `<div class="${clases}" title="${tieneEvento ? 'Click: agregar evento' : 'Click: agregar evento'}" 
+               onclick="abrirModalConFecha('${fechaStr}')">${d}</div>`;
+    }
+
+    cal.innerHTML = html;
+    renderEventos();
+  }
+
+  function renderEventos() {
+    const hoy = new Date(); hoy.setHours(0,0,0,0);
+    const en30 = new Date(hoy); en30.setDate(en30.getDate() + 30);
+
+    const proximos = eventos.filter(e => {
+      const d = new Date(e.fecha + 'T00:00:00');
+      return d >= hoy && d <= en30;
+    }).sort((a,b) => new Date(a.fecha) - new Date(b.fecha));
+
+    const lista = document.getElementById('listaEventos');
+    const empty = document.getElementById('emptyEventos');
+
+    if (proximos.length === 0) {
+      lista.style.display = 'none';
+      empty.style.display = 'flex';
+    } else {
+      empty.style.display = 'none';
+      lista.style.display = 'block';
+      lista.innerHTML = proximos.map(e => {
+        const d = new Date(e.fecha + 'T00:00:00');
+        const dia = d.getDate();
+        const mes = MESES[d.getMonth()].substring(0,3);
+        return `
+          <div style="display:flex;gap:10px;padding:10px;border-bottom:1px solid var(--border);">
+            <div style="text-align:center;width:45px;">
+              <div style="font-family:'Outfit',sans-serif;font-size:14px;font-weight:800;color:var(--accent2);">${dia}</div>
+              <div style="font-size:9px;color:var(--text-muted);text-transform:uppercase;">${mes}</div>
+            </div>
+            <div style="flex:1;min-width:0;">
+              <div style="font-weight:600;font-size:13px;">${e.nombre}</div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">📍 ${e.lugar}</div>
+              <div style="font-size:11px;color:var(--text-muted);">${e.tipo}</div>
+            </div>
+            <div style="display:flex;gap:4px;">
+              <button class="btn btn-ghost btn-sm" onclick="abrirModal(${e.id})">✏️</button>
+              <button class="btn btn-danger btn-sm" onclick="eliminar(${e.id})">🗑️</button>
+            </div>
+          </div>`;
+      }).join('');
+    }
+    actualizarKPIs();
+  }
+
+  function actualizarKPIs() {
+    const hoy = new Date(); hoy.setHours(0,0,0,0);
+    const en30 = new Date(hoy); en30.setDate(en30.getDate() + 30);
+    const proximos = eventos.filter(e => {
+      const d = new Date(e.fecha + 'T00:00:00');
+      return d >= hoy && d <= en30;
+    }).length;
+
+    document.getElementById('kpi-total').textContent = eventos.length;
+    document.getElementById('kpi-proximos').textContent = proximos;
+    document.getElementById('kpi-bodas').textContent = eventos.filter(e => e.tipo === 'Boda').length;
+    const conf = eventos.filter(e => e.estado === 'Confirmado').length;
+    const tasa = eventos.length > 0 ? Math.round((conf / eventos.length) * 100) : 0;
+    document.getElementById('kpi-confirmados').textContent = conf;
+    document.getElementById('kpi-tasa').textContent = `${tasa}%`;
+  }
+
+  function mesAnterior() {
+    mesActual--;
+    if (mesActual < 0) { mesActual = 11; anyoActual--; }
+    renderCalendario();
+  }
+
+  function mesSiguiente() {
+    mesActual++;
+    if (mesActual > 11) { mesActual = 0; anyoActual++; }
+    renderCalendario();
+  }
+
+  function abrirModalConFecha(fechaStr) {
+    fechaSeleccionada = fechaStr;
+    editandoId = null;
+    document.getElementById('modalTitulo').textContent = 'Nuevo Evento';
+    ['nombre','tipo','hora','lugar','contacto','notas'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('fecha').value = fechaStr;
+    document.getElementById('estado').value = 'Confirmado';
+    document.getElementById('modalOverlay').classList.add('open');
+  }
+
+  function abrirModal(id = null) {
+    editandoId = id;
+    fechaSeleccionada = null;
+    if (id) {
+      const e = eventos.find(x => x.id === id);
+      document.getElementById('modalTitulo').textContent = 'Editar Evento';
+      document.getElementById('nombre').value = e.nombre;
+      document.getElementById('tipo').value = e.tipo;
+      document.getElementById('fecha').value = e.fecha;
+      document.getElementById('hora').value = e.hora;
+      document.getElementById('lugar').value = e.lugar;
+      document.getElementById('contacto').value = e.contacto;
+      document.getElementById('estado').value = e.estado;
+      document.getElementById('notas').value = e.notas;
+    } else {
+      document.getElementById('modalTitulo').textContent = 'Nuevo Evento';
+      ['nombre','tipo','hora','lugar','contacto','notas'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('fecha').value = new Date().toISOString().slice(0, 10);
+      document.getElementById('estado').value = 'Confirmado';
+    }
+    document.getElementById('modalOverlay').classList.add('open');
+  }
+
+  function cerrarModal() {
+    document.getElementById('modalOverlay').classList.remove('open');
+  }
+
+  document.getElementById('modalOverlay').addEventListener('click', e => {
+    if (e.target === document.getElementById('modalOverlay')) cerrarModal();
+  });
+
+  function guardar() {
+    const nombre = document.getElementById('nombre').value.trim();
+    const tipo = document.getElementById('tipo').value;
+    const fecha = document.getElementById('fecha').value;
+    const lugar = document.getElementById('lugar').value.trim();
+
+    if (!nombre || !tipo || !fecha || !lugar) {
+      alert('Completa los campos obligatorios (*)');
+      return;
+    }
+
+    const datos = {
+      nombre, tipo, fecha, lugar,
+      hora: document.getElementById('hora').value,
+      contacto: document.getElementById('contacto').value.trim(),
+      estado: document.getElementById('estado').value,
+      notas: document.getElementById('notas').value.trim(),
+    };
+
+    if (editandoId) {
+      const idx = eventos.findIndex(x => x.id === editandoId);
+      eventos[idx] = { ...eventos[idx], ...datos };
+    } else {
+      datos.id = Date.now();
+      eventos.push(datos);
+    }
+
+    localStorage.setItem('ps_eventos', JSON.stringify(eventos));
+    cerrarModal();
+    renderCalendario();
+  }
+
+  function eliminar(id) {
+    if (!confirm('¿Eliminar este evento?')) return;
+    eventos = eventos.filter(x => x.id !== id);
+    localStorage.setItem('ps_eventos', JSON.stringify(eventos));
+    renderCalendario();
+  }
+
+  renderCalendario();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PLUTOM STUDIO — Facturas</title>
+<link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Manrope:wght@300;400;500;600;700&display=swap">
+</head>
+<body>
+
+<aside class="sidebar"></aside>
+
+<main class="main">
+  <div class="topbar">
+    <div class="page-title">🧾 Facturas</div>
+    <div class="topbar-right" style="display:flex;gap:12px;align-items:center;">
+      <div class="search-bar">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="Buscar factura..." oninput="filtrar()">
+      </div>
+      <button class="btn btn-primary" onclick="abrirModal()">+ Nueva Factura</button>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="kpi-grid">
+      <div class="kpi-card anim-1">
+        <div class="kpi-header"><span class="kpi-label">Total Facturas</span><div class="kpi-icon amber">🧾</div></div>
+        <div class="kpi-value" id="kpi-total">0</div>
+        <div class="kpi-footer"><span class="kpi-change neu">—</span><span class="kpi-sub">emitidas</span></div>
+      </div>
+      <div class="kpi-card anim-2">
+        <div class="kpi-header"><span class="kpi-label">Pendientes</span><div class="kpi-icon red">⏳</div></div>
+        <div class="kpi-value" id="kpi-pendientes">0</div>
+        <div class="kpi-footer"><span class="kpi-change neu">—</span><span class="kpi-sub">sin pagar</span></div>
+      </div>
+      <div class="kpi-card anim-3">
+        <div class="kpi-header"><span class="kpi-label">Pagadas</span><div class="kpi-icon green">✅</div></div>
+        <div class="kpi-value" id="kpi-pagadas">0</div>
+        <div class="kpi-footer"><span class="kpi-change pos" id="kpi-tasa">0%</span><span class="kpi-sub">tasa de pago</span></div>
+      </div>
+      <div class="kpi-card anim-4">
+        <div class="kpi-header"><span class="kpi-label">Monto Pendiente</span><div class="kpi-icon purple">💰</div></div>
+        <div class="kpi-value" id="kpi-pendiente" style="font-size:18px;">RD$0</div>
+        <div class="kpi-footer"><span class="kpi-change neu">—</span><span class="kpi-sub">a cobrar</span></div>
+      </div>
+    </div>
+
+    <div class="card" style="padding:0;animation:fadeUp 0.45s 0.25s ease both;">
+      <div style="padding:20px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+        <div class="card-title">📋 Lista de Facturas</div>
+        <select id="filtroEstado" onchange="filtrar()" style="width:auto;padding:7px 32px 7px 12px;font-size:12.5px;">
+          <option value="">Todos los estados</option>
+          <option>Pendiente</option>
+          <option>Pagada</option>
+          <option>Vencida</option>
+          <option>Anulada</option>
+        </select>
+      </div>
+      <div class="table-wrap" style="border:none;border-radius:0;">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Cliente</th>
+              <th>Monto</th>
+              <th>Emisión</th>
+              <th>Vencimiento</th>
+              <th>Estado</th>
+              <th style="text-align:center">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tablaFacturas"></tbody>
+        </table>
+        <div id="emptyFacturas" class="empty-state" style="display:none;">
+          <div class="empty-icon">🧾</div>
+          <div class="empty-title">Sin facturas aún</div>
+          <div class="empty-sub">Crea tu primera factura desde aquí</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- MODAL FACTURA -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitulo">🧾 Nueva Factura</div>
+      <button class="modal-close" onclick="cerrarModal()">✕</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:16px;">
+      <div class="form-group">
+        <label>Cliente *</label>
+        <select id="cliente">
+          <option value="">Seleccionar cliente...</option>
+        </select>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Servicio / Descripción *</label>
+          <input type="text" id="servicio" placeholder="Ej. Fotografía Boda">
+        </div>
+        <div class="form-group">
+          <label>Monto Total (RD$) *</label>
+          <input type="number" id="monto" placeholder="0.00" min="0">
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Fecha de Emisión *</label>
+          <input type="date" id="emision">
+        </div>
+        <div class="form-group">
+          <label>Fecha de Vencimiento</label>
+          <input type="date" id="vencimiento">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Estado</label>
+        <select id="estado">
+          <option>Pendiente</option>
+          <option>Pagada</option>
+          <option>Vencida</option>
+          <option>Anulada</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Notas / Detalles</label>
+        <textarea id="notas" placeholder="Observaciones adicionales..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardar()">💾 Guardar Factura</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/supabase.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/app.js"></script>
+<script src="js/shell.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<script>
+  let facturas = JSON.parse(localStorage.getItem('ps_facturas') || '[]');
+  let counter = parseInt(localStorage.getItem('ps_fact_counter') || '0');
+  let editandoId = null;
+
+  function renderTabla() {
+    const tabla = document.getElementById('tablaFacturas');
+    const empty = document.getElementById('emptyFacturas');
+    
+    if (facturas.length === 0) {
+      tabla.innerHTML = '';
+      empty.style.display = 'flex';
+    } else {
+      empty.style.display = 'none';
+      tabla.innerHTML = facturas.map(f => `
+        <tr>
+          <td style="font-weight:600;">${f.num}</td>
+          <td>${f.cliente}</td>
+          <td>RD$${Number(f.monto).toLocaleString('es-DO')}</td>
+          <td>${f.emision}</td>
+          <td style="font-size:12px;">${f.vencimiento || '—'}</td>
+          <td><span class="chip ${f.estado === 'Pagada' ? 'chip-green' : f.estado === 'Vencida' ? 'chip-red' : f.estado === 'Pendiente' ? 'chip-amber' : 'chip-muted'}">${f.estado}</span></td>
+          <td style="text-align:center;">
+            <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;">
+              <button class="btn btn-ghost btn-sm" title="PDF" onclick="descargarPDFFactura(${f.id})">📄</button>
+              <button class="btn btn-ghost btn-sm" title="WhatsApp" onclick="compartirWhatsAppFactura(${f.id})">💬</button>
+              <button class="btn btn-ghost btn-sm" onclick="abrirModal(${f.id})">✏️</button>
+              <button class="btn btn-danger btn-sm" onclick="eliminar(${f.id})">🗑️</button>
+            </div>
+          </td>
+        </tr>`).join('');
+    }
+    actualizarKPIs();
+  }
+
+  function actualizarKPIs() {
+    document.getElementById('kpi-total').textContent = facturas.length;
+    const pend = facturas.filter(f => f.estado === 'Pendiente' || f.estado === 'Vencida').length;
+    const pagadas = facturas.filter(f => f.estado === 'Pagada').length;
+    const tasa = facturas.length > 0 ? Math.round((pagadas / facturas.length) * 100) : 0;
+    const mPend = facturas.filter(f => f.estado !== 'Pagada' && f.estado !== 'Anulada').reduce((s, f) => s + Number(f.monto), 0);
+
+    document.getElementById('kpi-pendientes').textContent = pend;
+    document.getElementById('kpi-pagadas').textContent = pagadas;
+    document.getElementById('kpi-tasa').textContent = `${tasa}%`;
+    document.getElementById('kpi-pendiente').textContent = `RD$${mPend.toLocaleString('es-DO')}`;
+  }
+
+  function cargarClientes() {
+    const clientes = JSON.parse(localStorage.getItem('ps_clientes') || '[]');
+    const select = document.getElementById('cliente');
+    const opts = ['<option value="">Seleccionar cliente...</option>'];
+    clientes.forEach(c => opts.push(`<option value="${c.nombre}">${c.nombre}</option>`));
+    select.innerHTML = opts.join('');
+  }
+
+  function filtrar() {
+    const search = document.getElementById('searchInput').value.toLowerCase();
+    const estado = document.getElementById('filtroEstado').value;
+    const tabla = document.getElementById('tablaFacturas');
+
+    let filtrados = facturas.filter(f =>
+      (f.num.toLowerCase().includes(search) ||
+       f.cliente.toLowerCase().includes(search)) &&
+      (!estado || f.estado === estado)
+    );
+
+    if (filtrados.length === 0) {
+      tabla.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-muted);">No hay resultados</td></tr>';
+    } else {
+      tabla.innerHTML = filtrados.map(f => `
+        <tr>
+          <td style="font-weight:600;">${f.num}</td>
+          <td>${f.cliente}</td>
+          <td>RD$${Number(f.monto).toLocaleString('es-DO')}</td>
+          <td>${f.emision}</td>
+          <td style="font-size:12px;">${f.vencimiento || '—'}</td>
+          <td><span class="chip ${f.estado === 'Pagada' ? 'chip-green' : f.estado === 'Vencida' ? 'chip-red' : f.estado === 'Pendiente' ? 'chip-amber' : 'chip-muted'}">${f.estado}</span></td>
+          <td style="text-align:center;">
+            <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;">
+              <button class="btn btn-ghost btn-sm" title="PDF" onclick="descargarPDFFactura(${f.id})">📄</button>
+              <button class="btn btn-ghost btn-sm" title="WhatsApp" onclick="compartirWhatsAppFactura(${f.id})">💬</button>
+              <button class="btn btn-ghost btn-sm" onclick="abrirModal(${f.id})">✏️</button>
+              <button class="btn btn-danger btn-sm" onclick="eliminar(${f.id})">🗑️</button>
+            </div>
+          </td>
+        </tr>`).join('');
+    }
+  }
+
+  function abrirModal(id = null) {
+    editandoId = id;
+    if (id) {
+      const f = facturas.find(x => x.id === id);
+      document.getElementById('modalTitulo').textContent = '✏️ Editar Factura';
+      document.getElementById('cliente').value = f.cliente;
+      document.getElementById('servicio').value = f.servicio;
+      document.getElementById('monto').value = f.monto;
+      document.getElementById('emision').value = f.emision;
+      document.getElementById('vencimiento').value = f.vencimiento;
+      document.getElementById('estado').value = f.estado;
+      document.getElementById('notas').value = f.notas;
+    } else {
+      document.getElementById('modalTitulo').textContent = '🧾 Nueva Factura';
+      ['cliente','servicio','monto','emision','vencimiento','notas'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('emision').value = new Date().toISOString().slice(0, 10);
+      document.getElementById('estado').value = 'Pendiente';
+    }
+    document.getElementById('modalOverlay').classList.add('open');
+  }
+
+  function cerrarModal() {
+    document.getElementById('modalOverlay').classList.remove('open');
+  }
+
+  document.getElementById('modalOverlay').addEventListener('click', e => {
+    if (e.target === document.getElementById('modalOverlay')) cerrarModal();
+  });
+
+  function guardar() {
+    const cliente = document.getElementById('cliente').value.trim();
+    const servicio = document.getElementById('servicio').value.trim();
+    const monto = parseFloat(document.getElementById('monto').value);
+    const emision = document.getElementById('emision').value;
+
+    if (!cliente || !servicio || isNaN(monto) || !emision) {
+      alert('Completa los campos obligatorios (*)');
+      return;
+    }
+
+    if (!editandoId) counter++;
+
+    const datos = {
+      num: editandoId ? facturas.find(x => x.id === editandoId).num : `FAC-${String(counter).padStart(4, '0')}`,
+      cliente, servicio, monto, emision,
+      vencimiento: document.getElementById('vencimiento').value,
+      estado: document.getElementById('estado').value,
+      notas: document.getElementById('notas').value,
+    };
+
+    if (editandoId) {
+      const idx = facturas.findIndex(x => x.id === editandoId);
+      facturas[idx] = { ...facturas[idx], ...datos };
+    } else {
+      datos.id = Date.now();
+      facturas.push(datos);
+    }
+
+    localStorage.setItem('ps_facturas', JSON.stringify(facturas));
+    localStorage.setItem('ps_fact_counter', counter);
+    cerrarModal();
+    renderTabla();
+  }
+
+  function eliminar(id) {
+    if (!confirm('¿Eliminar esta factura?')) return;
+    facturas = facturas.filter(x => x.id !== id);
+    localStorage.setItem('ps_facturas', JSON.stringify(facturas));
+    renderTabla();
+  }
+
+  function descargarPDFFactura(id) {
+    const f = facturas.find(x => x.id === id);
+    if (!f) return;
+    
+    const elemento = document.createElement('div');
+    elemento.innerHTML = `
+    <div style="font-family: Arial, sans-serif; padding: 30px; color: #1a1a2e; max-width: 600px;">
+      <div style="text-align: center; border-bottom: 2px solid #0f2744; padding-bottom: 15px; margin-bottom: 20px;">
+        <div style="font-size: 20px; font-weight: bold; color: #0f2744;">PLUTOM STUDIO</div>
+        <div style="font-size: 11px; color: #8a9bb0;">Marketing · Fotografía · Video · Diseño</div>
+      </div>
+      
+      <div style="font-size: 16px; font-weight: bold; text-align: right; margin: 20px 0;">FACTURA ${f.num}</div>
+      
+      <div style="margin: 15px 0;">
+        <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee;"><strong>Cliente:</strong> <span>${f.cliente}</span></div>
+        <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee;"><strong>Emisión:</strong> <span>${f.emision}</span></div>
+        <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee;"><strong>Vencimiento:</strong> <span>${f.vencimiento || '—'}</span></div>
+        <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee;"><strong>Estado:</strong> <span>${f.estado}</span></div>
+      </div>
+      
+      <div style="margin: 25px 0; padding: 15px; background: #f8fafc; border-radius: 6px;">
+        <div style="display: flex; justify-content: space-between; padding: 8px 0;"><strong>Servicio:</strong> <span>${f.servicio}</span></div>
+        <div style="display: flex; justify-content: space-between; padding: 8px 0; font-weight: bold; color: #065f46;"><span>Monto:</span> <span>RD$ ${Number(f.monto).toLocaleString('es-DO')}</span></div>
+      </div>
+      
+      <div style="font-size: 16px; font-weight: bold; text-align: right; margin: 20px 0; padding-top: 15px; border-top: 2px solid #0f2744;">TOTAL: RD$ ${Number(f.monto).toLocaleString('es-DO')}</div>
+      
+      ${f.notas ? `<div style="margin-top: 15px; padding: 15px; background: #f8fafc; border-radius: 6px; font-size: 12px;"><strong>Notas:</strong><br>${f.notas}</div>` : ''}
+      
+      <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; font-size: 11px; color: #8a9bb0;">
+        <div>Gracias por tu confianza</div>
+        <div>Santiago de los Caballeros, República Dominicana</div>
+      </div>
+    </div>`;
+    
+    const opt = {
+      margin: 10,
+      filename: `Factura_${f.num}_${f.cliente.replace(/\s+/g, '_')}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2 },
+      jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
+    };
+    
+    html2pdf().set(opt).from(elemento).save();
+  }
+
+  function compartirWhatsAppFactura(id) {
+    const f = facturas.find(x => x.id === id);
+    if (!f) return;
+    
+    const numero = f.contacto || '1809000000'; // Número de WhatsApp
+    const mensaje = `*FACTURA ${f.num}*%0A%0A` +
+      `Cliente: ${f.cliente}%0A` +
+      `Servicio: ${f.servicio}%0A` +
+      `Monto: RD$ ${Number(f.monto).toLocaleString('es-DO')}%0A` +
+      `Emisión: ${f.emision}%0A` +
+      `Vencimiento: ${f.vencimiento || '—'}%0A` +
+      `Estado: ${f.estado}%0A%0A` +
+      `Descarga tu factura adjunta en nuestra plataforma.%0A%0A` +
+      `PLUTOM STUDIO`;
+    
+    const url = `https://wa.me/${numero.replace(/\D/g, '')}?text=${mensaje}`;
+    window.open(url, '_blank');
+  }
+
+  cargarClientes();
+  renderTabla();
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const btn = document.querySelector('.topbar-right .btn-primary');
+    if (btn) btn.addEventListener('click', () => abrirModal());
+  });
+</script>
+
+</body>
+</html>
