@@ -276,11 +276,22 @@ const db = new SupabaseDB();
 window.addEventListener('load', async () => {
   console.log('📊 Estado de BD:', db.getStatus());
   
-  // Sincronizar automáticamente al cargar
+  // Descargar datos de Supabase sin intentar subir (evita duplicados)
   if (db.isConfigured) {
-    console.log('🔄 Sincronizando datos al cargar...');
-    await db.syncAll();
-    console.log('✅ Sincronización completada');
+    console.log('🔄 Descargando datos de Supabase...');
+    try {
+      const tables = ['clientes', 'cotizaciones', 'facturas', 'finanzas', 'eventos', 'proyectos', 'servicios', 'inventario'];
+      for (const table of tables) {
+        const cloudData = await db.get(table);
+        if (cloudData.length > 0) {
+          localStorage.setItem(`ps_${table}`, JSON.stringify(cloudData));
+          console.log(`✓ Descargados ${cloudData.length} registros de ${table}`);
+        }
+      }
+      console.log('✅ Descarga completada');
+    } catch (error) {
+      console.warn('⚠️ Error descargando datos:', error);
+    }
   }
 });
 
