@@ -276,11 +276,36 @@ const db = new SupabaseDB();
 window.addEventListener('load', async () => {
   console.log('📊 Estado de BD:', db.getStatus());
   
-  // ⚠️ NO sincronizar automáticamente por ahora
-  // Esperar a que el usuario lo haga manualmente
-  // if (db.isConfigured) {
-  //   await db.syncAll();
-  // }
+  // Sincronizar automáticamente al cargar
+  if (db.isConfigured) {
+    console.log('🔄 Sincronizando datos al cargar...');
+    await db.syncAll();
+    console.log('✅ Sincronización completada');
+  }
 });
+
+// Sincronizar cada 5 segundos (para actualizaciones en tiempo real)
+setInterval(async () => {
+  if (db.isConfigured) {
+    try {
+      // Obtener datos de Supabase sin mostrar logs
+      const tables = ['clientes', 'cotizaciones', 'facturas', 'finanzas', 'eventos', 'proyectos', 'servicios', 'inventario'];
+      for (const table of tables) {
+        const cloudData = await db.get(table);
+        const localData = JSON.parse(localStorage.getItem(`ps_${table}`) || '[]');
+        
+        // Si hay datos nuevos en la nube, actualizar localStorage
+        if (cloudData.length !== localData.length) {
+          localStorage.setItem(`ps_${table}`, JSON.stringify(cloudData));
+          console.log(`🔄 Actualizados ${cloudData.length} registros de ${table}`);
+          // Disparar evento para que la app se recargue
+          window.dispatchEvent(new CustomEvent('dataUpdated', { detail: { table } }));
+        }
+      }
+    } catch (error) {
+      // Silent fail - no mostrar errores de sincronización
+    }
+  }
+}, 5000); // Cada 5 segundos
 
 console.log('✅ Supabase Integration cargado');
