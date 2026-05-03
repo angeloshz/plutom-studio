@@ -2,14 +2,14 @@
 // SUPABASE INTEGRATION - PLUTOM STUDIO
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-const SUPABASE_URL = 'https://YOUR_PROJECT.supabase.co';
-const SUPABASE_KEY = 'YOUR_PUBLIC_ANON_KEY';
+const SUPABASE_URL = 'https://fpapzoepmzyeypschboy.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZwYXB6b2VwbXp5ZXlwc2NoYm95Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcyMDI1NzgsImV4cCI6MjA5Mjc3ODU3OH0.ApepS--dO6Y2rXLEpAnrMXT0AvwDTRWhTtcDJ0L6G08';
 
 class SupabaseDB {
   constructor() {
     this.url = SUPABASE_URL;
     this.key = SUPABASE_KEY;
-    this.isConfigured = this.url !== 'https://YOUR_PROJECT.supabase.co';
+    this.isConfigured = this.url !== 'https://YOUR_PROJECT.supabase.co' && this.key !== 'YOUR_PUBLIC_ANON_KEY';
   }
 
   // Obtener datos de una tabla
@@ -51,6 +51,15 @@ class SupabaseDB {
     }
 
     try {
+      // Validar que el objeto tenga los campos requeridos
+      if (!data.id) {
+        console.warn(`⚠️ Dato sin ID en ${table}, usando localStorage solo`, data);
+        const items = JSON.parse(localStorage.getItem(`ps_${table}`) || '[]');
+        items.push(data);
+        localStorage.setItem(`ps_${table}`, JSON.stringify(items));
+        return data;
+      }
+
       const response = await fetch(
         `${this.url}/rest/v1/${table}`,
         {
@@ -64,21 +73,30 @@ class SupabaseDB {
         }
       );
 
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      if (!response.ok) {
+        const errorMsg = await response.text();
+        console.error(`Error insertando en ${table}:`, response.status, errorMsg);
+        throw new Error(`HTTP ${response.status}`);
+      }
+      
       const result = await response.json();
       
       // También guardar en localStorage como respaldo
       const items = JSON.parse(localStorage.getItem(`ps_${table}`) || '[]');
-      items.push(data);
-      localStorage.setItem(`ps_${table}`, JSON.stringify(items));
+      if (!items.find(x => x.id === data.id)) {
+        items.push(data);
+        localStorage.setItem(`ps_${table}`, JSON.stringify(items));
+      }
       
       return result[0] || data;
     } catch (error) {
       console.error(`Error insertando en ${table}:`, error);
       // Fallback a localStorage
       const items = JSON.parse(localStorage.getItem(`ps_${table}`) || '[]');
-      items.push(data);
-      localStorage.setItem(`ps_${table}`, JSON.stringify(items));
+      if (!items.find(x => x.id === data.id)) {
+        items.push(data);
+        localStorage.setItem(`ps_${table}`, JSON.stringify(items));
+      }
       return data;
     }
   }
@@ -189,16 +207,37 @@ class SupabaseDB {
 
     for (const table of tables) {
       try {
-        const cloudData = await this.get(table);
         const localData = JSON.parse(localStorage.getItem(`ps_${table}`) || '[]');
 
-        // Si hay datos en la nube, usar esos (más actualizados)
-        if (cloudData.length > 0) {
-          localStorage.setItem(`ps_${table}`, JSON.stringify(cloudData));
-        } else if (localData.length > 0) {
-          // Si hay datos locales pero no en la nube, subirlos
+        // Si hay datos locales, intentar subirlos a Supabase
+        if (localData.length > 0) {
+          let uploadedCount = 0;
+          
           for (const item of localData) {
-            await this.insert(table, item);
+            // Validar que tenga ID antes de subir
+            if (item.id) {
+              try {
+                await this.insert(table, item);
+                uploadedCount++;
+              } catch (err) {
+                console.warn(`⚠️ No se pudo sincronizar ${table}:`, item.id);
+              }
+            } else {
+              console.warn(`⚠️ Dato sin ID en ${table}:`, item);
+            }
+          }
+          
+          console.log(`✓ Sincronizados ${uploadedCount}/${localData.length} en ${table}`);
+        } else {
+          // Si no hay datos locales, obtener de la nube
+          try {
+            const cloudData = await this.get(table);
+            if (cloudData.length > 0) {
+              localStorage.setItem(`ps_${table}`, JSON.stringify(cloudData));
+              console.log(`✓ Descargados ${cloudData.length} registros de ${table}`);
+            }
+          } catch (err) {
+            console.warn(`⚠️ No se pudo descargar ${table}`);
           }
         }
       } catch (error) {
@@ -226,10 +265,11 @@ const db = new SupabaseDB();
 window.addEventListener('load', async () => {
   console.log('📊 Estado de BD:', db.getStatus());
   
-  // Sincronizar automáticamente al cargar
-  if (db.isConfigured) {
-    await db.syncAll();
-  }
+  // ⚠️ NO sincronizar automáticamente por ahora
+  // Esperar a que el usuario lo haga manualmente
+  // if (db.isConfigured) {
+  //   await db.syncAll();
+  // }
 });
 
 console.log('✅ Supabase Integration cargado');
