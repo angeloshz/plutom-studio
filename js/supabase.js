@@ -212,33 +212,44 @@ class SupabaseDB {
         // Si hay datos locales, intentar subirlos a Supabase
         if (localData.length > 0) {
           let uploadedCount = 0;
+          let failedCount = 0;
           
           for (const item of localData) {
             // Validar que tenga ID antes de subir
             if (item.id) {
               try {
-                await this.insert(table, item);
-                uploadedCount++;
+                // Intentar insertar en Supabase
+                const response = await fetch(
+                  `${this.url}/rest/v1/${table}`,
+                  {
+                    method: 'POST',
+                    headers: {
+                      'apikey': this.key,
+                      'Content-Type': 'application/json',
+                      'Prefer': 'return=representation',
+                    },
+                    body: JSON.stringify(item)
+                  }
+                );
+
+                if (response.ok) {
+                  uploadedCount++;
+                  console.log(`✓ Uploadead ${table}:`, item.id);
+                } else {
+                  const errorMsg = await response.text();
+                  failedCount++;
+                  console.warn(`⚠️ Error uploading ${table} ${item.id}:`, response.status, errorMsg);
+                }
               } catch (err) {
-                console.warn(`⚠️ No se pudo sincronizar ${table}:`, item.id);
+                failedCount++;
+                console.warn(`⚠️ Error con ${table}:`, item.id, err);
               }
             } else {
               console.warn(`⚠️ Dato sin ID en ${table}:`, item);
             }
           }
           
-          console.log(`✓ Sincronizados ${uploadedCount}/${localData.length} en ${table}`);
-        } else {
-          // Si no hay datos locales, obtener de la nube
-          try {
-            const cloudData = await this.get(table);
-            if (cloudData.length > 0) {
-              localStorage.setItem(`ps_${table}`, JSON.stringify(cloudData));
-              console.log(`✓ Descargados ${cloudData.length} registros de ${table}`);
-            }
-          } catch (err) {
-            console.warn(`⚠️ No se pudo descargar ${table}`);
-          }
+          console.log(`📊 ${table}: ${uploadedCount} subidos, ${failedCount} fallidos de ${localData.length}`);
         }
       } catch (error) {
         console.warn(`Error sincronizando ${table}:`, error);
