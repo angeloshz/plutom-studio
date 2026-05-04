@@ -190,7 +190,6 @@
 <script src="js/shell.js"></script>
 <script src="js/supabase.js"></script>
 <script src="js/auth.js"></script>
-<script src="js/menu-hamburguesa.js"></script>
 
 <script>
   let proyectos = JSON.parse(localStorage.getItem('ps_proyectos') || '[]');
@@ -334,7 +333,7 @@
     if (e.target === document.getElementById('modalOverlay')) cerrarModal();
   });
 
-  function guardar() {
+  async function guardar() {
     const nombre = document.getElementById('nombre').value.trim();
     const cliente = document.getElementById('cliente').value.trim();
     const tipo = document.getElementById('tipo').value;
@@ -355,22 +354,33 @@
     };
 
     if (editandoId) {
+      datos.id = editandoId;
       const idx = proyectos.findIndex(x => x.id === editandoId);
       proyectos[idx] = { ...proyectos[idx], ...datos };
+      localStorage.setItem('ps_proyectos', JSON.stringify(proyectos));
+      if (window.guardarEnSupabase) {
+        await window.guardarEnSupabase('proyectos', datos, true);
+      }
     } else {
       datos.id = Date.now();
       proyectos.push(datos);
+      localStorage.setItem('ps_proyectos', JSON.stringify(proyectos));
+      if (window.guardarEnSupabase) {
+        await window.guardarEnSupabase('proyectos', datos, false);
+      }
     }
 
-    localStorage.setItem('ps_proyectos', JSON.stringify(proyectos));
     cerrarModal();
     renderGrid();
   }
 
-  function eliminar(id) {
+  async function eliminar(id) {
     if (!confirm('¿Eliminar este proyecto?')) return;
     proyectos = proyectos.filter(x => x.id !== id);
     localStorage.setItem('ps_proyectos', JSON.stringify(proyectos));
+    if (window.eliminarDeSupabase) {
+      await window.eliminarDeSupabase('proyectos', id);
+    }
     renderGrid();
   }
 
@@ -383,5 +393,14 @@
   });
 </script>
 
+<script>
+function toggleMenu() { const m = document.getElementById("menu-movil"); if(m) m.classList.toggle("open"); }
+function cerrarMenu() { const m = document.getElementById("menu-movil"); if(m) m.classList.remove("open"); }
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll(".menu-item").forEach(i => i.addEventListener("click", cerrarMenu));
+  const o = document.getElementById("menu-movil");
+  if(o) o.addEventListener("click", e => e.target === o && cerrarMenu());
+});
+</script>
 </body>
 </html>

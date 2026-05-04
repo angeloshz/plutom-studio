@@ -430,7 +430,6 @@
 <script src="js/shell.js"></script>
 <script src="js/supabase.js"></script>
 <script src="js/auth.js"></script>
-<script src="js/menu-hamburguesa.js"></script>
 
 <script>
   // Datos globales
@@ -742,5 +741,14 @@
   });
 </script>
 
+<script>
+function toggleMenu() { const m = document.getElementById("menu-movil"); if(m) m.classList.toggle("open"); }
+function cerrarMenu() { const m = document.getElementById("menu-movil"); if(m) m.classList.remove("open"); }
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll(".menu-item").forEach(i => i.addEventListener("click", cerrarMenu));
+  const o = document.getElementById("menu-movil");
+  if(o) o.addEventListener("click", e => e.target === o && cerrarMenu());
+});
+</script>
 </body>
 </html>

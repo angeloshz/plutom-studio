@@ -173,7 +173,6 @@
 <script src="js/shell.js"></script>
 <script src="js/supabase.js"></script>
 <script src="js/auth.js"></script>
-<script src="js/menu-hamburguesa.js"></script>
 
 <script>
   let inventario = JSON.parse(localStorage.getItem('ps_inventario') || '[]');
@@ -277,7 +276,7 @@
     if (e.target === document.getElementById('modalOverlay')) cerrarModal();
   });
 
-  function guardar() {
+  async function guardar() {
     const nombre = document.getElementById('nombre').value.trim();
     const categoria = document.getElementById('categoria').value;
 
@@ -296,27 +295,47 @@
     };
 
     if (editandoId) {
+      datos.id = editandoId;
       const idx = inventario.findIndex(x => x.id === editandoId);
       inventario[idx] = { ...inventario[idx], ...datos };
+      localStorage.setItem('ps_inventario', JSON.stringify(inventario));
+      if (window.guardarEnSupabase) {
+        await window.guardarEnSupabase('inventario', datos, true);
+      }
     } else {
       datos.id = Date.now();
       inventario.push(datos);
+      localStorage.setItem('ps_inventario', JSON.stringify(inventario));
+      if (window.guardarEnSupabase) {
+        await window.guardarEnSupabase('inventario', datos, false);
+      }
     }
 
-    localStorage.setItem('ps_inventario', JSON.stringify(inventario));
     cerrarModal();
     renderGrid();
   }
 
-  function eliminar(id) {
+  async function eliminar(id) {
     if (!confirm('¿Eliminar?')) return;
     inventario = inventario.filter(x => x.id !== id);
     localStorage.setItem('ps_inventario', JSON.stringify(inventario));
+    if (window.eliminarDeSupabase) {
+      await window.eliminarDeSupabase('inventario', id);
+    }
     renderGrid();
   }
 
   renderGrid();
 </script>
 
+<script>
+function toggleMenu() { const m = document.getElementById("menu-movil"); if(m) m.classList.toggle("open"); }
+function cerrarMenu() { const m = document.getElementById("menu-movil"); if(m) m.classList.remove("open"); }
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll(".menu-item").forEach(i => i.addEventListener("click", cerrarMenu));
+  const o = document.getElementById("menu-movil");
+  if(o) o.addEventListener("click", e => e.target === o && cerrarMenu());
+});
+</script>
 </body>
 </html>

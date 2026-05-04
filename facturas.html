@@ -170,7 +170,6 @@
 <script src="js/shell.js"></script>
 <script src="js/supabase.js"></script>
 <script src="js/auth.js"></script>
-<script src="js/menu-hamburguesa.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
 <script>
@@ -292,7 +291,7 @@
     if (e.target === document.getElementById('modalOverlay')) cerrarModal();
   });
 
-  function guardar() {
+  async function guardar() {
     const cliente = document.getElementById('cliente').value.trim();
     const servicio = document.getElementById('servicio').value.trim();
     const monto = parseFloat(document.getElementById('monto').value);
@@ -314,23 +313,34 @@
     };
 
     if (editandoId) {
+      datos.id = editandoId;
       const idx = facturas.findIndex(x => x.id === editandoId);
       facturas[idx] = { ...facturas[idx], ...datos };
+      localStorage.setItem('ps_facturas', JSON.stringify(facturas));
+      if (window.guardarEnSupabase) {
+        await window.guardarEnSupabase('facturas', datos, true);
+      }
     } else {
       datos.id = Date.now();
       facturas.push(datos);
+      localStorage.setItem('ps_facturas', JSON.stringify(facturas));
+      if (window.guardarEnSupabase) {
+        await window.guardarEnSupabase('facturas', datos, false);
+      }
     }
 
-    localStorage.setItem('ps_facturas', JSON.stringify(facturas));
     localStorage.setItem('ps_fact_counter', counter);
     cerrarModal();
     renderTabla();
   }
 
-  function eliminar(id) {
+  async function eliminar(id) {
     if (!confirm('¿Eliminar esta factura?')) return;
     facturas = facturas.filter(x => x.id !== id);
     localStorage.setItem('ps_facturas', JSON.stringify(facturas));
+    if (window.eliminarDeSupabase) {
+      await window.eliminarDeSupabase('facturas', id);
+    }
     renderTabla();
   }
 
@@ -409,5 +419,14 @@
   });
 </script>
 
+<script>
+function toggleMenu() { const m = document.getElementById("menu-movil"); if(m) m.classList.toggle("open"); }
+function cerrarMenu() { const m = document.getElementById("menu-movil"); if(m) m.classList.remove("open"); }
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll(".menu-item").forEach(i => i.addEventListener("click", cerrarMenu));
+  const o = document.getElementById("menu-movil");
+  if(o) o.addEventListener("click", e => e.target === o && cerrarMenu());
+});
+</script>
 </body>
 </html>

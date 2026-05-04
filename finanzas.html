@@ -200,7 +200,6 @@
 <script src="js/shell.js"></script>
 <script src="js/supabase.js"></script>
 <script src="js/auth.js"></script>
-<script src="js/menu-hamburguesa.js"></script>
 
 <script>
   let finanzas = JSON.parse(localStorage.getItem('ps_finanzas') || '[]');
@@ -316,7 +315,7 @@
     if (e.target === document.getElementById('modalOverlay')) cerrarModal();
   });
 
-  function guardar() {
+  async function guardar() {
     const desc = document.getElementById('desc').value.trim();
     const categoria = document.getElementById('categoria').value;
     const monto = parseFloat(document.getElementById('monto').value);
@@ -336,22 +335,33 @@
     };
 
     if (editandoId) {
+      datos.id = editandoId;
       const idx = finanzas.findIndex(x => x.id === editandoId);
       finanzas[idx] = { ...finanzas[idx], ...datos };
+      localStorage.setItem('ps_finanzas', JSON.stringify(finanzas));
+      if (window.guardarEnSupabase) {
+        await window.guardarEnSupabase('finanzas', datos, true);
+      }
     } else {
       datos.id = Date.now();
       finanzas.push(datos);
+      localStorage.setItem('ps_finanzas', JSON.stringify(finanzas));
+      if (window.guardarEnSupabase) {
+        await window.guardarEnSupabase('finanzas', datos, false);
+      }
     }
 
-    localStorage.setItem('ps_finanzas', JSON.stringify(finanzas));
     cerrarModal();
     renderTabla();
   }
 
-  function eliminar(id) {
+  async function eliminar(id) {
     if (!confirm('¿Eliminar este movimiento?')) return;
     finanzas = finanzas.filter(x => x.id !== id);
     localStorage.setItem('ps_finanzas', JSON.stringify(finanzas));
+    if (window.eliminarDeSupabase) {
+      await window.eliminarDeSupabase('finanzas', id);
+    }
     renderTabla();
   }
 
@@ -364,5 +374,14 @@
   });
 </script>
 
+<script>
+function toggleMenu() { const m = document.getElementById("menu-movil"); if(m) m.classList.toggle("open"); }
+function cerrarMenu() { const m = document.getElementById("menu-movil"); if(m) m.classList.remove("open"); }
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll(".menu-item").forEach(i => i.addEventListener("click", cerrarMenu));
+  const o = document.getElementById("menu-movil");
+  if(o) o.addEventListener("click", e => e.target === o && cerrarMenu());
+});
+</script>
 </body>
 </html>
