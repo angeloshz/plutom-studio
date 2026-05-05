@@ -2,7 +2,11 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0F1522">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="PLUTOM STUDIO">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>PLUTOM STUDIO — Finanzas</title>
 <link rel="stylesheet" href="css/styles.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Manrope:wght@300;400;500;600;700&display=swap">
@@ -13,13 +17,37 @@
 
 <main class="main">
   <div class="topbar">
-    <div class="page-title">💰 Finanzas</div>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <button class="btn-hamburguesa" onclick="toggleMenu()">☰</button>
+      <div class="page-title">💰 Finanzas</div>
+    </div>
     <div class="topbar-right" style="display:flex;gap:12px;align-items:center;">
       <div class="search-bar">
         <span class="search-icon">🔍</span>
         <input type="text" id="searchInput" placeholder="Buscar movimiento..." oninput="filtrar()">
       </div>
       <button class="btn btn-primary" onclick="abrirModal()">+ Movimiento</button>
+    </div>
+  </div>
+
+  <!-- MENÚ MOBILE HAMBURGUESA -->
+  <div id="menu-movil" class="menu-movil">
+    <div class="menu-movil-content">
+      <div class="menu-section-title">Principal</div>
+      <button class="menu-item" onclick="window.location='plutom-studio-dashboard.html'">🏠 Dashboard</button>
+      <button class="menu-item" onclick="window.location='clientes.html'">👥 Clientes</button>
+      <button class="menu-item" onclick="window.location='cotizaciones.html'">📄 Cotizaciones</button>
+      <button class="menu-item" onclick="window.location='facturas.html'">📋 Facturas</button>
+      
+      <div class="menu-section-title">Operaciones</div>
+      <button class="menu-item active" onclick="window.location='finanzas.html'">💰 Finanzas</button>
+      <button class="menu-item" onclick="window.location='inventario.html'">📦 Inventario</button>
+      <button class="menu-item" onclick="window.location='proyectos.html'">✨ Proyectos</button>
+      <button class="menu-item" onclick="window.location='eventos.html'">🎉 Eventos</button>
+      
+      <div class="menu-section-title">Análisis</div>
+      <button class="menu-item" onclick="window.location='reportes.html'">📊 Reportes</button>
+      <button class="menu-item" onclick="window.location='servicios.html'">🔧 Servicios</button>
     </div>
   </div>
 
@@ -168,10 +196,10 @@
   </div>
 </div>
 
-<script src="js/supabase.js"></script>
-<script src="js/auth.js"></script>
 <script src="js/app.js"></script>
 <script src="js/shell.js"></script>
+<script src="js/supabase.js"></script>
+<script src="js/auth.js"></script>
 
 <script>
   let finanzas = JSON.parse(localStorage.getItem('ps_finanzas') || '[]');
@@ -287,7 +315,7 @@
     if (e.target === document.getElementById('modalOverlay')) cerrarModal();
   });
 
-  function guardar() {
+  async function guardar() {
     const desc = document.getElementById('desc').value.trim();
     const categoria = document.getElementById('categoria').value;
     const monto = parseFloat(document.getElementById('monto').value);
@@ -307,22 +335,33 @@
     };
 
     if (editandoId) {
+      datos.id = editandoId;
       const idx = finanzas.findIndex(x => x.id === editandoId);
       finanzas[idx] = { ...finanzas[idx], ...datos };
+      localStorage.setItem('ps_finanzas', JSON.stringify(finanzas));
+      if (window.guardarEnSupabase) {
+        await window.guardarEnSupabase('finanzas', datos, true);
+      }
     } else {
       datos.id = Date.now();
       finanzas.push(datos);
+      localStorage.setItem('ps_finanzas', JSON.stringify(finanzas));
+      if (window.guardarEnSupabase) {
+        await window.guardarEnSupabase('finanzas', datos, false);
+      }
     }
 
-    localStorage.setItem('ps_finanzas', JSON.stringify(finanzas));
     cerrarModal();
     renderTabla();
   }
 
-  function eliminar(id) {
+  async function eliminar(id) {
     if (!confirm('¿Eliminar este movimiento?')) return;
     finanzas = finanzas.filter(x => x.id !== id);
     localStorage.setItem('ps_finanzas', JSON.stringify(finanzas));
+    if (window.eliminarDeSupabase) {
+      await window.eliminarDeSupabase('finanzas', id);
+    }
     renderTabla();
   }
 
@@ -335,5 +374,14 @@
   });
 </script>
 
+<script>
+function toggleMenu() { const m = document.getElementById("menu-movil"); if(m) m.classList.toggle("open"); }
+function cerrarMenu() { const m = document.getElementById("menu-movil"); if(m) m.classList.remove("open"); }
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll(".menu-item").forEach(i => i.addEventListener("click", cerrarMenu));
+  const o = document.getElementById("menu-movil");
+  if(o) o.addEventListener("click", e => e.target === o && cerrarMenu());
+});
+</script>
 </body>
 </html>

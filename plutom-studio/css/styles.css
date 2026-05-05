@@ -1528,3 +1528,119 @@ tbody tr:last-child td {
 .animate-pulse {
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   MENÚ HAMBURGUESA - PARA MOBILE
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+.btn-hamburguesa {
+  display: none;
+}
+
+.menu-movil {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .btn-hamburguesa {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    font-size: 24px;
+    cursor: pointer;
+    padding: 8px;
+    width: 44px;
+    height: 44px;
+    min-height: 44px;
+    min-width: 44px;
+    border-radius: 6px;
+    transition: all 0.2s var(--ease);
+  }
+
+  .btn-hamburguesa:hover {
+    background: var(--bg-surface-hover);
+  }
+
+  .menu-movil {
+    position: fixed;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex !important;
+    z-index: 2000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s var(--ease);
+  }
+
+  .menu-movil.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .menu-movil-content {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 80%;
+    max-width: 280px;
+    height: 100vh;
+    background: var(--bg-surface);
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    padding-top: 70px;
+    overflow-y: auto;
+    z-index: 2001;
+    transform: translateX(-100%);
+    transition: transform 0.3s var(--ease);
+  }
+
+  .menu-movil.open .menu-movil-content {
+    transform: translateX(0);
+  }
+
+  .menu-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    background: transparent;
+    border: none;
+    border-left: 3px solid transparent;
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s var(--ease);
+    text-align: left;
+    width: 100%;
+    min-height: 44px;
+  }
+
+  .menu-item:hover {
+    background: var(--bg-surface-hover);
+    color: var(--text-primary);
+  }
+
+  .menu-item.active {
+    background: var(--accent-primary);
+    color: white;
+    border-left: 3px solid white;
+  }
+
+  .menu-section-title {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 16px 16px 8px;
+    margin-top: 8px;
+  }
+}
